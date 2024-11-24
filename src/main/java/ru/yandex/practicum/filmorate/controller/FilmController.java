@@ -20,7 +20,7 @@ public class FilmController {
     public Film createFilm(@RequestBody Film film) {
         long filmId = nextId();
         film.setId(filmId);
-        if (film.getName() == null || film.getDuration() == null || film.getDescription() == null
+        if (film.getName().isEmpty() || film.getDuration() == null || film.getDescription().isEmpty()
                 || film.getReleaseDate() == null) {
             log.error("фильм без имени и др параметров");
             throw new ValidationException("У фильма должно быть имя, длительность, описание и дата релиза.");

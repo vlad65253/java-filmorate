@@ -33,7 +33,7 @@ public class UserController {
             log.error("емаил без @");
             throw new ValidationException("В Email-e должен быть символ @.");
         }
-        if (user.getName().isEmpty()) {
+        if (user.getName() == null || user.getName().isEmpty()) {
             user.setName(user.getLogin());
             log.info("поменял имя на логин");
         }

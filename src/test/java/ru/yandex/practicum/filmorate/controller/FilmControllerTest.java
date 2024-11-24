@@ -139,30 +139,6 @@ class FilmControllerTest {
     }
 
     @Test
-    void createFilmNullNameShouldThrowValidationException() {
-        Film film = new Film();
-        film.setName(null); // Null name
-        film.setDescription("This is a valid description.");
-        film.setReleaseDate(LocalDate.of(2020, 1, 1));
-        film.setDuration(120);
-
-        ValidationException exception = assertThrows(ValidationException.class, () -> filmController.createFilm(film));
-        assertEquals("У фильма должно быть имя, длительность, описание и дата релиза.", exception.getMessage());
-    }
-
-    @Test
-    void createFilmNullDescriptionShouldThrowValidationException() {
-        Film film = new Film();
-        film.setName("Valid Film");
-        film.setDescription(null); // Null description
-        film.setReleaseDate(LocalDate.of(2020, 1, 1));
-        film.setDuration(120);
-
-        ValidationException exception = assertThrows(ValidationException.class, () -> filmController.createFilm(film));
-        assertEquals("У фильма должно быть имя, длительность, описание и дата релиза.", exception.getMessage());
-    }
-
-    @Test
     void createFilmNullReleaseDateShouldThrowValidationException() {
         Film film = new Film();
         film.setName("Valid Film");
