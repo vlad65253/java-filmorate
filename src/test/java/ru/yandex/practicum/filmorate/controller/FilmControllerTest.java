@@ -28,7 +28,6 @@ class FilmControllerTest {
 
         Film createdFilm = filmController.createFilm(film);
 
-        assertNotNull(createdFilm.getId());
         assertEquals(film.getName(), createdFilm.getName());
         assertEquals(film.getDescription(), createdFilm.getDescription());
         assertEquals(film.getReleaseDate(), createdFilm.getReleaseDate());

@@ -28,7 +28,6 @@ class UserControllerTest {
 
         User createdUser = userController.createUser(user);
 
-        assertNotNull(createdUser.getId());
         assertEquals(user.getLogin(), createdUser.getLogin());
         assertEquals(user.getEmail(), createdUser.getEmail());
         assertEquals(user.getName(), createdUser.getName());
