@@ -43,7 +43,8 @@ class UserControllerTest {
         user.setName("Valid Name");
         user.setBirthday(LocalDate.of(2000, 1, 1));
 
-        assertThrows(ValidationException.class, () -> userController.createUser(user));
+        ValidationException exception = assertThrows(ValidationException.class, () -> userController.createUser(user));
+        assertEquals("Логин не должен содержать пробелов.", exception.getMessage());
     }
 
     @Test
@@ -54,7 +55,8 @@ class UserControllerTest {
         user.setName("Valid Name");
         user.setBirthday(LocalDate.of(2000, 1, 1));
 
-        assertThrows(ValidationException.class, () -> userController.createUser(user));
+        ValidationException exception = assertThrows(ValidationException.class, () -> userController.createUser(user));
+        assertEquals("Логин, др и емаил не могут быть пустыми.", exception.getMessage());
     }
 
     @Test
@@ -65,7 +67,8 @@ class UserControllerTest {
         user.setName("Valid Name");
         user.setBirthday(LocalDate.of(2000, 1, 1));
 
-        assertThrows(ValidationException.class, () -> userController.createUser(user));
+        ValidationException exception = assertThrows(ValidationException.class, () -> userController.createUser(user));
+        assertEquals("Логин, др и емаил не могут быть пустыми.", exception.getMessage());
     }
 
     @Test
@@ -76,7 +79,8 @@ class UserControllerTest {
         user.setName("Valid Name");
         user.setBirthday(LocalDate.of(2000, 1, 1));
 
-        assertThrows(ValidationException.class, () -> userController.createUser(user));
+        ValidationException exception = assertThrows(ValidationException.class, () -> userController.createUser(user));
+        assertEquals("В Email-e должен быть символ @.", exception.getMessage());
     }
 
     @Test
@@ -87,7 +91,8 @@ class UserControllerTest {
         user.setName("Valid Name");
         user.setBirthday(LocalDate.now().plusDays(1));
 
-        assertThrows(ValidationException.class, () -> userController.createUser(user));
+        ValidationException exception = assertThrows(ValidationException.class, () -> userController.createUser(user));
+        assertEquals("Пользователь не может родиться в будующем).", exception.getMessage());
     }
 
     @Test
@@ -101,7 +106,7 @@ class UserControllerTest {
         User createdUser = userController.createUser(user);
 
         createdUser.setName("Updated Name");
-        User updatedUser = userController.updateFilm(createdUser);
+        User updatedUser = userController.updateUser(createdUser);
 
         assertEquals("Updated Name", updatedUser.getName());
     }
@@ -115,7 +120,8 @@ class UserControllerTest {
         user.setName("Valid Name");
         user.setBirthday(LocalDate.of(2000, 1, 1));
 
-        assertThrows(ValidationException.class, () -> userController.updateFilm(user));
+        ValidationException exception = assertThrows(ValidationException.class, () -> userController.updateUser(user));
+        assertEquals("Пользователя с таким айди нет.", exception.getMessage());
     }
 
     @Test
@@ -139,4 +145,92 @@ class UserControllerTest {
 
         assertEquals(2, users.size());
     }
+
+    @Test
+    void createUserNullBirthdayShouldThrowValidationException() {
+        User user = new User();
+        user.setLogin("validLogin");
+        user.setEmail("email@example.com");
+        user.setName("Valid Name");
+        user.setBirthday(null); // Null birthday
+
+        ValidationException exception = assertThrows(ValidationException.class, () -> userController.createUser(user));
+        assertEquals("Логин, др и емаил не могут быть пустыми.", exception.getMessage());
+    }
+
+    @Test
+    void updateUserNullLoginShouldUseExistingValue() {
+        User user = new User();
+        user.setLogin("validLogin");
+        user.setEmail("email@example.com");
+        user.setName("Valid Name");
+        user.setBirthday(LocalDate.of(2000, 1, 1));
+
+        User createdUser = userController.createUser(user);
+
+        User updatedData = new User();
+        updatedData.setId(createdUser.getId());
+        updatedData.setLogin(null); // Null login
+        updatedData.setEmail("updated_email@example.com");
+        updatedData.setName("Updated Name");
+        updatedData.setBirthday(LocalDate.of(1995, 1, 1));
+
+        User updatedUser = userController.updateUser(updatedData);
+
+        assertEquals("validLogin", updatedUser.getLogin()); // Login remains unchanged
+        assertEquals("updated_email@example.com", updatedUser.getEmail());
+        assertEquals("Updated Name", updatedUser.getName());
+        assertEquals(LocalDate.of(1995, 1, 1), updatedUser.getBirthday());
+    }
+
+    @Test
+    void updateUserNullEmailShouldUseExistingValue() {
+        User user = new User();
+        user.setLogin("validLogin");
+        user.setEmail("email@example.com");
+        user.setName("Valid Name");
+        user.setBirthday(LocalDate.of(2000, 1, 1));
+
+        User createdUser = userController.createUser(user);
+
+        User updatedData = new User();
+        updatedData.setId(createdUser.getId());
+        updatedData.setLogin("updatedLogin");
+        updatedData.setEmail(null); // Null email
+        updatedData.setName("Updated Name");
+        updatedData.setBirthday(LocalDate.of(1995, 1, 1));
+
+        User updatedUser = userController.updateUser(updatedData);
+
+        assertEquals("updatedLogin", updatedUser.getLogin());
+        assertEquals("email@example.com", updatedUser.getEmail()); // Email remains unchanged
+        assertEquals("Updated Name", updatedUser.getName());
+        assertEquals(LocalDate.of(1995, 1, 1), updatedUser.getBirthday());
+    }
+
+    @Test
+    void updateUserNullBirthdayShouldUseExistingValue() {
+        User user = new User();
+        user.setLogin("validLogin");
+        user.setEmail("email@example.com");
+        user.setName("Valid Name");
+        user.setBirthday(LocalDate.of(2000, 1, 1));
+
+        User createdUser = userController.createUser(user);
+
+        User updatedData = new User();
+        updatedData.setId(createdUser.getId());
+        updatedData.setLogin("updatedLogin");
+        updatedData.setEmail("updated_email@example.com");
+        updatedData.setName("Updated Name");
+        updatedData.setBirthday(null); // Null birthday
+
+        User updatedUser = userController.updateUser(updatedData);
+
+        assertEquals("updatedLogin", updatedUser.getLogin());
+        assertEquals("updated_email@example.com", updatedUser.getEmail());
+        assertEquals("Updated Name", updatedUser.getName());
+        assertEquals(LocalDate.of(2000, 1, 1), updatedUser.getBirthday()); // Birthday remains unchanged
+    }
+
 }

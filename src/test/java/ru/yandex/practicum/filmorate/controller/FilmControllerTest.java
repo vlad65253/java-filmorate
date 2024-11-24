@@ -36,17 +36,6 @@ class FilmControllerTest {
     }
 
     @Test
-    void createFilmEmptyNameShouldThrowValidationException() {
-        Film film = new Film();
-        film.setName("");
-        film.setDescription("This is a valid description.");
-        film.setReleaseDate(LocalDate.of(2020, 1, 1));
-        film.setDuration(120);
-
-        assertThrows(ValidationException.class, () -> filmController.createFilm(film));
-    }
-
-    @Test
     void createFilmDescriptionTooLongShouldThrowValidationException() {
         Film film = new Film();
         film.setName("Valid Film");
@@ -54,7 +43,8 @@ class FilmControllerTest {
         film.setReleaseDate(LocalDate.of(2020, 1, 1));
         film.setDuration(120);
 
-        assertThrows(ValidationException.class, () -> filmController.createFilm(film));
+        ValidationException exception = assertThrows(ValidationException.class, () -> filmController.createFilm(film));
+        assertEquals("Максимальная длина описания - 200 символов.", exception.getMessage());
     }
 
     @Test
@@ -65,7 +55,8 @@ class FilmControllerTest {
         film.setReleaseDate(LocalDate.of(1895, 12, 27)); // Релиз до 28 декабря 1895
         film.setDuration(120);
 
-        assertThrows(ValidationException.class, () -> filmController.createFilm(film));
+        ValidationException exception = assertThrows(ValidationException.class, () -> filmController.createFilm(film));
+        assertEquals("Дата релиза должна быть не раньше 28 декабря 1895 года", exception.getMessage());
     }
 
     @Test
@@ -76,7 +67,8 @@ class FilmControllerTest {
         film.setReleaseDate(LocalDate.of(2020, 1, 1));
         film.setDuration(-1);
 
-        assertThrows(ValidationException.class, () -> filmController.createFilm(film));
+        ValidationException exception = assertThrows(ValidationException.class, () -> filmController.createFilm(film));
+        assertEquals("Продолжительность фильма должна быть положительной", exception.getMessage());
     }
 
     @Test
@@ -104,7 +96,8 @@ class FilmControllerTest {
         film.setReleaseDate(LocalDate.of(2020, 1, 1));
         film.setDuration(120);
 
-        assertThrows(ValidationException.class, () -> filmController.updateFilm(film));
+        ValidationException exception = assertThrows(ValidationException.class, () -> filmController.updateFilm(film));
+        assertEquals("Фильма с таким айди нет.", exception.getMessage());
     }
 
     @Test
@@ -118,7 +111,8 @@ class FilmControllerTest {
         Film createdFilm = filmController.createFilm(film);
 
         createdFilm.setDescription("A".repeat(201)); // 201 символ
-        assertThrows(ValidationException.class, () -> filmController.updateFilm(createdFilm));
+        ValidationException exception = assertThrows(ValidationException.class, () -> filmController.updateFilm(createdFilm));
+        assertEquals("Максимальная длина описания - 200 символов.", exception.getMessage());
     }
 
     @Test
@@ -141,5 +135,156 @@ class FilmControllerTest {
         Collection<Film> films = filmController.getFilms();
 
         assertEquals(2, films.size());
+        assertTrue(films.contains(film1));
+        assertTrue(films.contains(film2));
     }
+
+    @Test
+    void createFilmNullNameShouldThrowValidationException() {
+        Film film = new Film();
+        film.setName(null); // Null name
+        film.setDescription("This is a valid description.");
+        film.setReleaseDate(LocalDate.of(2020, 1, 1));
+        film.setDuration(120);
+
+        ValidationException exception = assertThrows(ValidationException.class, () -> filmController.createFilm(film));
+        assertEquals("У фильма должно быть имя, длительность, описание и дата релиза.", exception.getMessage());
+    }
+
+    @Test
+    void createFilmNullDescriptionShouldThrowValidationException() {
+        Film film = new Film();
+        film.setName("Valid Film");
+        film.setDescription(null); // Null description
+        film.setReleaseDate(LocalDate.of(2020, 1, 1));
+        film.setDuration(120);
+
+        ValidationException exception = assertThrows(ValidationException.class, () -> filmController.createFilm(film));
+        assertEquals("У фильма должно быть имя, длительность, описание и дата релиза.", exception.getMessage());
+    }
+
+    @Test
+    void createFilmNullReleaseDateShouldThrowValidationException() {
+        Film film = new Film();
+        film.setName("Valid Film");
+        film.setDescription("This is a valid description.");
+        film.setReleaseDate(null); // Null release date
+        film.setDuration(120);
+
+        ValidationException exception = assertThrows(ValidationException.class, () -> filmController.createFilm(film));
+        assertEquals("У фильма должно быть имя, длительность, описание и дата релиза.", exception.getMessage());
+    }
+
+    @Test
+    void createFilmNullDurationShouldThrowValidationException() {
+        Film film = new Film();
+        film.setName("Valid Film");
+        film.setDescription("This is a valid description.");
+        film.setReleaseDate(LocalDate.of(2020, 1, 1));
+        film.setDuration(null); // Null duration
+
+        ValidationException exception = assertThrows(ValidationException.class, () -> filmController.createFilm(film));
+        assertEquals("У фильма должно быть имя, длительность, описание и дата релиза.", exception.getMessage());
+    }
+
+    @Test
+    void updateFilmNullNameShouldUseExistingValue() {
+        Film film = new Film();
+        film.setName("Valid Film");
+        film.setDescription("This is a valid description.");
+        film.setReleaseDate(LocalDate.of(2020, 1, 1));
+        film.setDuration(120);
+
+        Film createdFilm = filmController.createFilm(film);
+
+        Film updateFilm = new Film();
+        updateFilm.setId(createdFilm.getId());
+        updateFilm.setName(null); // Null name
+        updateFilm.setDescription("Updated description.");
+        updateFilm.setReleaseDate(LocalDate.of(2021, 1, 1));
+        updateFilm.setDuration(150);
+
+        Film updatedFilm = filmController.updateFilm(updateFilm);
+
+        assertEquals("Valid Film", updatedFilm.getName()); // Name remains unchanged
+        assertEquals("Updated description.", updatedFilm.getDescription());
+        assertEquals(LocalDate.of(2021, 1, 1), updatedFilm.getReleaseDate());
+        assertEquals(150, updatedFilm.getDuration());
+    }
+
+    @Test
+    void updateFilmNullDescriptionShouldUseExistingValue() {
+        Film film = new Film();
+        film.setName("Valid Film");
+        film.setDescription("This is a valid description.");
+        film.setReleaseDate(LocalDate.of(2020, 1, 1));
+        film.setDuration(120);
+
+        Film createdFilm = filmController.createFilm(film);
+
+        Film updateFilm = new Film();
+        updateFilm.setId(createdFilm.getId());
+        updateFilm.setName("Updated Name");
+        updateFilm.setDescription(null); // Null description
+        updateFilm.setReleaseDate(LocalDate.of(2021, 1, 1));
+        updateFilm.setDuration(150);
+
+        Film updatedFilm = filmController.updateFilm(updateFilm);
+
+        assertEquals("Updated Name", updatedFilm.getName());
+        assertEquals("This is a valid description.", updatedFilm.getDescription()); // Description remains unchanged
+        assertEquals(LocalDate.of(2021, 1, 1), updatedFilm.getReleaseDate());
+        assertEquals(150, updatedFilm.getDuration());
+    }
+
+    @Test
+    void updateFilmNullReleaseDateShouldUseExistingValue() {
+        Film film = new Film();
+        film.setName("Valid Film");
+        film.setDescription("This is a valid description.");
+        film.setReleaseDate(LocalDate.of(2020, 1, 1));
+        film.setDuration(120);
+
+        Film createdFilm = filmController.createFilm(film);
+
+        Film updateFilm = new Film();
+        updateFilm.setId(createdFilm.getId());
+        updateFilm.setName("Updated Name");
+        updateFilm.setDescription("Updated description.");
+        updateFilm.setReleaseDate(null); // Null release date
+        updateFilm.setDuration(150);
+
+        Film updatedFilm = filmController.updateFilm(updateFilm);
+
+        assertEquals("Updated Name", updatedFilm.getName());
+        assertEquals("Updated description.", updatedFilm.getDescription());
+        assertEquals(LocalDate.of(2020, 1, 1), updatedFilm.getReleaseDate()); // Release date remains unchanged
+        assertEquals(150, updatedFilm.getDuration());
+    }
+
+    @Test
+    void updateFilmNullDurationShouldUseExistingValue() {
+        Film film = new Film();
+        film.setName("Valid Film");
+        film.setDescription("This is a valid description.");
+        film.setReleaseDate(LocalDate.of(2020, 1, 1));
+        film.setDuration(120);
+
+        Film createdFilm = filmController.createFilm(film);
+
+        Film updateFilm = new Film();
+        updateFilm.setId(createdFilm.getId());
+        updateFilm.setName("Updated Name");
+        updateFilm.setDescription("Updated description.");
+        updateFilm.setReleaseDate(LocalDate.of(2021, 1, 1));
+        updateFilm.setDuration(null); // Null duration
+
+        Film updatedFilm = filmController.updateFilm(updateFilm);
+
+        assertEquals("Updated Name", updatedFilm.getName());
+        assertEquals("Updated description.", updatedFilm.getDescription());
+        assertEquals(LocalDate.of(2021, 1, 1), updatedFilm.getReleaseDate());
+        assertEquals(120, updatedFilm.getDuration()); // Duration remains unchanged
+    }
+
 }

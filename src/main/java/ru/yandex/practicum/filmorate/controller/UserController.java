@@ -1,7 +1,6 @@
 package ru.yandex.practicum.filmorate.controller;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
@@ -13,9 +12,9 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/users")
+@Slf4j
 public class UserController {
     private final Map<Long, User> users = new HashMap<>();
-    private static final Logger log = LoggerFactory.getLogger(UserController.class);
 
     @PostMapping
     public User createUser(@RequestBody User user) {
@@ -26,13 +25,9 @@ public class UserController {
             log.error("логин с пробелами");
             throw new ValidationException("Логин не должен содержать пробелов.");
         }
-        if (user.getLogin().isEmpty()) {
-            log.error("пустой логин");
-            throw new ValidationException("Логин не может быть пустым.");
-        }
-        if (user.getEmail().isEmpty()) {
-            log.error("емаил пустой");
-            throw new ValidationException("Email не может быть пустым.");
+        if (user.getLogin().isEmpty() || user.getEmail().isEmpty() || user.getBirthday() == null) {
+            log.error("пустой логин, др или емаил");
+            throw new ValidationException("Логин, др и емаил не могут быть пустыми.");
         }
         if (!user.getEmail().contains("@")) {
             log.error("емаил без @");
@@ -52,29 +47,34 @@ public class UserController {
     }
 
     @PutMapping
-    public User updateFilm(@RequestBody User updateUser) {
+    public User updateUser(@RequestBody User updateUser) {
+        User userTemp = users.get(updateUser.getId());
+        if (updateUser.getEmail() == null) {
+            updateUser.setEmail(userTemp.getEmail());
+        }
+        if (updateUser.getName() == null) {
+            updateUser.setName(userTemp.getName());
+        }
+        if (updateUser.getBirthday() == null) {
+            updateUser.setBirthday(userTemp.getBirthday());
+        }
+        if (updateUser.getLogin() == null) {
+            updateUser.setLogin(userTemp.getLogin());
+        }
         if (updateUser.getLogin().contains(" ")) {
             log.error("логин с пробелами");
             throw new ValidationException("Логин не должен содержать пробелов.");
-        }
-        if (updateUser.getLogin().isEmpty()) {
-            log.error("пустой логин");
-            throw new ValidationException("Логин не может быть пустым.");
-        }
-        if (updateUser.getEmail().isEmpty()) {
-            log.error("емаил пустой");
-            throw new ValidationException("Email не может быть пустым.");
         }
         if (!updateUser.getEmail().contains("@")) {
             log.error("емаил без @");
             throw new ValidationException("В Email-e должен быть символ @.");
         }
-        if (updateUser.getName().isEmpty()) {
-            updateUser.setName(updateUser.getLogin());
+        if (updateUser.getBirthday().isAfter(LocalDate.now())) {
+            log.error("др в будующем");
+            throw new ValidationException("Пользователь не может родиться в будующем).");
         }
         if (!users.containsKey(updateUser.getId())) {
-            log.error("пользователя с " + updateUser.getId() + " айди нет");
-            throw new ValidationException("Ползователя с таким айди нет.");
+            throw new ValidationException("Пользователя с таким айди нет.");
         }
         users.put(updateUser.getId(), updateUser);
         log.info("Обновился пользователь с айди = " + updateUser.getId());

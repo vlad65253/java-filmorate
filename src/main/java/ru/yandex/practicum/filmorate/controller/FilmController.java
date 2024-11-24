@@ -1,7 +1,6 @@
 package ru.yandex.practicum.filmorate.controller;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
@@ -13,17 +12,18 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/films")
+@Slf4j
 public class FilmController {
     private final Map<Long, Film> films = new HashMap<>();
-    private static final Logger log = LoggerFactory.getLogger(UserController.class);
 
     @PostMapping
     public Film createFilm(@RequestBody Film film) {
         long filmId = nextId();
         film.setId(filmId);
-        if (film.getName().isEmpty()) {
-            log.error("фильм без имени");
-            throw new ValidationException("У фильма должно быть имя.");
+        if (film.getName() == null || film.getDuration() == null || film.getDescription() == null
+                || film.getReleaseDate() == null) {
+            log.error("фильм без имени и др параметров");
+            throw new ValidationException("У фильма должно быть имя, длительность, описание и дата релиза.");
         }
         if (film.getDescription().length() > 200) {
             log.error("описание > 200");
@@ -44,9 +44,18 @@ public class FilmController {
 
     @PutMapping
     public Film updateFilm(@RequestBody Film filmUpdated) {
-        if (filmUpdated.getDescription().isEmpty()) {
-            log.error("фильм без имени");
-            throw new ValidationException("У фильма должно быть имя.");
+        Film filmTemp = films.get(filmUpdated.getId());
+        if (filmUpdated.getReleaseDate() == null) {
+            filmUpdated.setReleaseDate(filmTemp.getReleaseDate());
+        }
+        if (filmUpdated.getName() == null) {
+            filmUpdated.setName(filmTemp.getName());
+        }
+        if (filmUpdated.getDescription() == null) {
+            filmUpdated.setDescription(filmTemp.getDescription());
+        }
+        if (filmUpdated.getDuration() == null) {
+            filmUpdated.setDuration(filmTemp.getDuration());
         }
         if (filmUpdated.getDescription().length() > 200) {
             log.error("описание > 200");
