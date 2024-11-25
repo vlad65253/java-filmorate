@@ -43,7 +43,7 @@ class FilmControllerTest {
         film.setDuration(120);
 
         ValidationException exception = assertThrows(ValidationException.class, () -> filmController.createFilm(film));
-        assertEquals("Максимальная длина описания - 200 символов.", exception.getMessage());
+        assertEquals("Ошибка валидации описания.", exception.getMessage());
     }
 
     @Test
@@ -55,7 +55,7 @@ class FilmControllerTest {
         film.setDuration(120);
 
         ValidationException exception = assertThrows(ValidationException.class, () -> filmController.createFilm(film));
-        assertEquals("Дата релиза должна быть не раньше 28 декабря 1895 года", exception.getMessage());
+        assertEquals("Ошибка валидации даты создания.", exception.getMessage());
     }
 
     @Test
@@ -67,7 +67,7 @@ class FilmControllerTest {
         film.setDuration(-1);
 
         ValidationException exception = assertThrows(ValidationException.class, () -> filmController.createFilm(film));
-        assertEquals("Продолжительность фильма должна быть положительной", exception.getMessage());
+        assertEquals("Ошибка валидации продолжительности фильма.", exception.getMessage());
     }
 
     @Test
@@ -111,7 +111,7 @@ class FilmControllerTest {
 
         createdFilm.setDescription("A".repeat(201)); // 201 символ
         ValidationException exception = assertThrows(ValidationException.class, () -> filmController.updateFilm(createdFilm));
-        assertEquals("Максимальная длина описания - 200 символов.", exception.getMessage());
+        assertEquals("Ошибка валидации описания.", exception.getMessage());
     }
 
     @Test
@@ -147,7 +147,7 @@ class FilmControllerTest {
         film.setDuration(120);
 
         ValidationException exception = assertThrows(ValidationException.class, () -> filmController.createFilm(film));
-        assertEquals("У фильма должно быть имя, длительность, описание и дата релиза.", exception.getMessage());
+        assertEquals("Ошибка валидации даты создания.", exception.getMessage());
     }
 
     @Test
@@ -159,7 +159,7 @@ class FilmControllerTest {
         film.setDuration(null); // Null duration
 
         ValidationException exception = assertThrows(ValidationException.class, () -> filmController.createFilm(film));
-        assertEquals("У фильма должно быть имя, длительность, описание и дата релиза.", exception.getMessage());
+        assertEquals("Ошибка валидации продолжительности фильма.", exception.getMessage());
     }
 
     @Test

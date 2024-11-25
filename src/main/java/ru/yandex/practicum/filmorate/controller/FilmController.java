@@ -15,30 +15,30 @@ import java.util.Map;
 @Slf4j
 public class FilmController {
     private final Map<Long, Film> films = new HashMap<>();
+    private final LocalDate DATE_BIRTHDAY_CINEMA = LocalDate.of(1895, 12, 28);
 
     @PostMapping
     public Film createFilm(@RequestBody Film film) {
         long filmId = nextId();
         film.setId(filmId);
-        if (film.getName().isEmpty() || film.getDuration() == null || film.getDescription().isEmpty()
-                || film.getReleaseDate() == null) {
-            log.error("фильм без имени и др параметров");
-            throw new ValidationException("У фильма должно быть имя, длительность, описание и дата релиза.");
+        if (film.getName() == null || film.getName().isBlank()) {
+            log.error("Ошибка валидации фильма");
+            throw new ValidationException("Ошибка валидации фильма.");
         }
-        if (film.getDescription().length() > 200) {
-            log.error("описание > 200");
-            throw new ValidationException("Максимальная длина описания - 200 символов.");
+        if (film.getDescription() == null || film.getDescription().isBlank() || film.getDescription().length() > 200) {
+            log.error("Ошибка валидации описания");
+            throw new ValidationException("Ошибка валидации описания.");
         }
-        if (film.getReleaseDate().isBefore(LocalDate.of(1895, 12, 28))) {
-            log.error("дата релиза позже праздника");
-            throw new ValidationException("Дата релиза должна быть не раньше 28 декабря 1895 года");
+        if (film.getReleaseDate() == null || film.getReleaseDate().isBefore(DATE_BIRTHDAY_CINEMA)) {
+            log.error("Ошибка валидации даты создания");
+            throw new ValidationException("Ошибка валидации даты создания.");
         }
-        if (film.getDuration() <= 0) {
-            log.error("отрицательная длина фильма");
-            throw new ValidationException("Продолжительность фильма должна быть положительной");
+        if (film.getDuration() == null || film.getDuration() <= 0) {
+            log.error("Ошибка валидации продолжительности фильма");
+            throw new ValidationException("Ошибка валидации продолжительности фильма.");
         }
         films.put(filmId, film);
-        log.info("новый фильм создан");
+        log.info("Новый фильм создан");
         return film;
     }
 
@@ -59,15 +59,15 @@ public class FilmController {
         }
         if (filmUpdated.getDescription().length() > 200) {
             log.error("описание > 200");
-            throw new ValidationException("Максимальная длина описания - 200 символов.");
+            throw new ValidationException("Ошибка валидации описания.");
         }
         if (filmUpdated.getReleaseDate().isBefore(LocalDate.of(1895, 12, 28))) {
             log.error("дата релиза позже праздника");
-            throw new ValidationException("Дата релиза должна быть не раньше 28 декабря 1895 года");
+            throw new ValidationException("Ошибка валидации даты создания.");
         }
         if (filmUpdated.getDuration() <= 0) {
             log.error("отрицательная длина фильма");
-            throw new ValidationException("Продолжительность фильма должна быть положительной");
+            throw new ValidationException("Ошибка валидации продолжительности фильма.");
         }
         if (!films.containsKey(filmUpdated.getId())) {
             throw new ValidationException("Фильма с таким айди нет.");

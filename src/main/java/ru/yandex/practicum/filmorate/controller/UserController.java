@@ -21,25 +21,21 @@ public class UserController {
         long userId = nextId();
         user.setId(userId);
 
-        if (user.getLogin().contains(" ")) {
-            log.error("логин с пробелами");
-            throw new ValidationException("Логин не должен содержать пробелов.");
+        if (user.getLogin() == null || user.getLogin().isBlank() || user.getLogin().contains(" ")) {
+            log.error("Ошибка валидации логина");
+            throw new ValidationException("Ошибка валидации логина.");
         }
-        if (user.getLogin().isEmpty() || user.getEmail().isEmpty() || user.getBirthday() == null) {
-            log.error("пустой логин, др или емаил");
-            throw new ValidationException("Логин, др и емаил не могут быть пустыми.");
+        if (user.getEmail() == null || user.getEmail().isBlank() || !user.getEmail().contains("@")) {
+            log.error("Ошибка валидации Емаила");
+            throw new ValidationException("Ошибка валидации Емаила.");
         }
-        if (!user.getEmail().contains("@")) {
-            log.error("емаил без @");
-            throw new ValidationException("В Email-e должен быть символ @.");
-        }
-        if (user.getName() == null || user.getName().isEmpty()) {
+        if (user.getName() == null || user.getName().isBlank()) {
             user.setName(user.getLogin());
             log.info("поменял имя на логин");
         }
-        if (user.getBirthday().isAfter(LocalDate.now())) {
-            log.error("др в будующем");
-            throw new ValidationException("Пользователь не может родиться в будующем).");
+        if (user.getBirthday() == null || user.getBirthday().isAfter(LocalDate.now())) {
+            log.error("Ошибка валидации Дня Рождения");
+            throw new ValidationException("Ошибка валидации Дня Рождения.");
         }
         users.put(userId, user);
         log.info("Добавился новый пользователь");
@@ -61,17 +57,13 @@ public class UserController {
         if (updateUser.getLogin() == null) {
             updateUser.setLogin(userTemp.getLogin());
         }
-        if (updateUser.getLogin().contains(" ")) {
-            log.error("логин с пробелами");
-            throw new ValidationException("Логин не должен содержать пробелов.");
-        }
-        if (!updateUser.getEmail().contains("@")) {
-            log.error("емаил без @");
-            throw new ValidationException("В Email-e должен быть символ @.");
+        if (updateUser.getLogin().contains(" ") || !updateUser.getEmail().contains("@")) {
+            log.error("Ошибка валидации логина");
+            throw new ValidationException("Ошибка валидации логина.");
         }
         if (updateUser.getBirthday().isAfter(LocalDate.now())) {
-            log.error("др в будующем");
-            throw new ValidationException("Пользователь не может родиться в будующем).");
+            log.error("Ошибка валидации Дня Рождения");
+            throw new ValidationException("Ошибка валидации Дня Рождения.");
         }
         if (!users.containsKey(updateUser.getId())) {
             throw new ValidationException("Пользователя с таким айди нет.");

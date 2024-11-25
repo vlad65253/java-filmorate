@@ -43,7 +43,7 @@ class UserControllerTest {
         user.setBirthday(LocalDate.of(2000, 1, 1));
 
         ValidationException exception = assertThrows(ValidationException.class, () -> userController.createUser(user));
-        assertEquals("Логин не должен содержать пробелов.", exception.getMessage());
+        assertEquals("Ошибка валидации логина.", exception.getMessage());
     }
 
     @Test
@@ -55,7 +55,7 @@ class UserControllerTest {
         user.setBirthday(LocalDate.of(2000, 1, 1));
 
         ValidationException exception = assertThrows(ValidationException.class, () -> userController.createUser(user));
-        assertEquals("Логин, др и емаил не могут быть пустыми.", exception.getMessage());
+        assertEquals("Ошибка валидации логина.", exception.getMessage());
     }
 
     @Test
@@ -67,7 +67,7 @@ class UserControllerTest {
         user.setBirthday(LocalDate.of(2000, 1, 1));
 
         ValidationException exception = assertThrows(ValidationException.class, () -> userController.createUser(user));
-        assertEquals("Логин, др и емаил не могут быть пустыми.", exception.getMessage());
+        assertEquals("Ошибка валидации Емаила.", exception.getMessage());
     }
 
     @Test
@@ -79,7 +79,7 @@ class UserControllerTest {
         user.setBirthday(LocalDate.of(2000, 1, 1));
 
         ValidationException exception = assertThrows(ValidationException.class, () -> userController.createUser(user));
-        assertEquals("В Email-e должен быть символ @.", exception.getMessage());
+        assertEquals("Ошибка валидации Емаила.", exception.getMessage());
     }
 
     @Test
@@ -91,7 +91,7 @@ class UserControllerTest {
         user.setBirthday(LocalDate.now().plusDays(1));
 
         ValidationException exception = assertThrows(ValidationException.class, () -> userController.createUser(user));
-        assertEquals("Пользователь не может родиться в будующем).", exception.getMessage());
+        assertEquals("Ошибка валидации Дня Рождения.", exception.getMessage());
     }
 
     @Test
@@ -154,7 +154,7 @@ class UserControllerTest {
         user.setBirthday(null); // Null birthday
 
         ValidationException exception = assertThrows(ValidationException.class, () -> userController.createUser(user));
-        assertEquals("Логин, др и емаил не могут быть пустыми.", exception.getMessage());
+        assertEquals("Ошибка валидации Дня Рождения.", exception.getMessage());
     }
 
     @Test
