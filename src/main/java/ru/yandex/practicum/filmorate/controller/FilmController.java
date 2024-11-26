@@ -15,7 +15,7 @@ import java.util.Map;
 @Slf4j
 public class FilmController {
     private final Map<Long, Film> films = new HashMap<>();
-    private final LocalDate dateBirthdayCinema = LocalDate.of(1895, 12, 28);
+    static final LocalDate DATE_BIRTHDAY_CINEMA = LocalDate.of(1895, 12, 28);
 
     @PostMapping
     public Film createFilm(@RequestBody Film film) {
@@ -29,7 +29,7 @@ public class FilmController {
             log.error("Ошибка валидации описания");
             throw new ValidationException("Ошибка валидации описания.");
         }
-        if (film.getReleaseDate() == null || film.getReleaseDate().isBefore(dateBirthdayCinema)) {
+        if (film.getReleaseDate() == null || film.getReleaseDate().isBefore(DATE_BIRTHDAY_CINEMA)) {
             log.error("Ошибка валидации даты создания");
             throw new ValidationException("Ошибка валидации даты создания.");
         }
