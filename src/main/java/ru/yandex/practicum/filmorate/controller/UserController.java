@@ -15,6 +15,7 @@ import java.util.Collection;
 @RequiredArgsConstructor
 public class UserController {
     private final UserService userService;
+
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping
     public User createUser(@RequestBody User user) {
@@ -25,6 +26,7 @@ public class UserController {
     public User updateUser(@RequestBody User updateUser) {
         return userService.updateUser(updateUser);
     }
+
     @PutMapping("/{id}/friends/{friendId}")
     public void addFriends(@PathVariable("id") long id, @PathVariable("friendId") long friendId) {
         userService.addFriend(id, friendId);
@@ -34,19 +36,23 @@ public class UserController {
     public Collection<User> getUsers() {
         return userService.getUsers();
     }
+
     @GetMapping("/{id}/friends")
-    public Collection<User> getFriendsForUser(@PathVariable long id){
+    public Collection<User> getFriendsForUser(@PathVariable long id) {
         return userService.getFriends(id);
     }
+
     @GetMapping("/{id}/friends/common/{otherId}")
-    public Collection<User> getOtherFriends(@PathVariable long id, @PathVariable long otherId){
+    public Collection<User> getOtherFriends(@PathVariable long id, @PathVariable long otherId) {
         return userService.getGeneralFriend(id, otherId);
     }
+
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/{id}/friends/{friendId}")
-    public void deleteFriend(@PathVariable("id") long id, @PathVariable("friendId") long friendId){
+    public void deleteFriend(@PathVariable("id") long id, @PathVariable("friendId") long friendId) {
         userService.deleteFriend(id, friendId);
     }
+
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/{id}")
     public void delete(@PathVariable int id) {

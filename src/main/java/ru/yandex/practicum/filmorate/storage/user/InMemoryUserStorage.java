@@ -10,12 +10,14 @@ import java.time.LocalDate;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+
 @Slf4j
 @Component
 public class InMemoryUserStorage implements UserStorage {
     private final Map<Long, User> users = new HashMap<>();
+
     @Override
-    public User createUser(User user){
+    public User createUser(User user) {
         long userId = nextId();
         user.setId(userId);
 
@@ -39,8 +41,9 @@ public class InMemoryUserStorage implements UserStorage {
         log.info("Добавился новый пользователь");
         return user;
     }
+
     @Override
-    public  User updateUser(User updateUser){
+    public User updateUser(User updateUser) {
         User userTemp = users.get(updateUser.getId());
         if (updateUser.getEmail() == null) {
             updateUser.setEmail(userTemp.getEmail());
@@ -69,25 +72,29 @@ public class InMemoryUserStorage implements UserStorage {
         log.info("Обновился пользователь с айди = " + updateUser.getId());
         return updateUser;
     }
+
     @Override
-    public Collection<User> getUsers(){
+    public Collection<User> getUsers() {
         return users.values();
     }
+
     @Override
-    public User getUserById(long id){
+    public User getUserById(long id) {
         if (!users.containsKey(id)) {
             throw new NotFoundException("Пользователь с таким id не найден");
         }
         return users.get(id);
     }
+
     @Override
-    public void deleteUser(long id){
-        if(!users.containsKey(id)){
+    public void deleteUser(long id) {
+        if (!users.containsKey(id)) {
             throw new NotFoundException("Пользователя с таким айди нет(");
         }
         users.remove(id);
         log.info("Пользователь {} удален успешно)))", id);
     }
+
     private long nextId() {
         long nowMaxId = users.keySet()
                 .stream()

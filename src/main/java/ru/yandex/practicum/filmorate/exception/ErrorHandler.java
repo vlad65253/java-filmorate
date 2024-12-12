@@ -27,5 +27,6 @@ public class ErrorHandler {
         return new ErrorResponse(e.getMessage());
     }
 
-    public record ErrorResponse(String error) {}
+    public record ErrorResponse(String error) {
+    }
 }

@@ -16,8 +16,9 @@ import java.util.Map;
 public class InMemoryFilmStorage implements FilmStorage {
     private final Map<Long, Film> films = new HashMap<>();
     static final LocalDate DATE_BIRTHDAY_CINEMA = LocalDate.of(1895, 12, 28);
+
     @Override
-    public Film createFilm(Film film){
+    public Film createFilm(Film film) {
         long filmId = nextId();
         film.setId(filmId);
         if (film.getName() == null || film.getName().isBlank()) {
@@ -40,8 +41,9 @@ public class InMemoryFilmStorage implements FilmStorage {
         log.info("Новый фильм создан");
         return film;
     }
+
     @Override
-    public Film updateFilm(Film filmUpdated){
+    public Film updateFilm(Film filmUpdated) {
         Film filmTemp = films.get(filmUpdated.getId());
         if (filmUpdated.getReleaseDate() == null) {
             filmUpdated.setReleaseDate(filmTemp.getReleaseDate());
@@ -74,20 +76,23 @@ public class InMemoryFilmStorage implements FilmStorage {
         log.info("Фильм изменен");
         return filmUpdated;
     }
+
     @Override
-    public Collection<Film> getFilms(){
+    public Collection<Film> getFilms() {
         return films.values();
 
     }
+
     @Override
-    public Film getFilm(long id){
+    public Film getFilm(long id) {
         if (!films.containsKey(id)) {
             throw new NotFoundException("Фильм с указанным id не найден");
         }
         return films.get(id);
     }
+
     @Override
-    public void deleteFilm(long id){
+    public void deleteFilm(long id) {
         if (!films.containsKey(id)) {
             throw new NotFoundException("Фильм с указанным id не найден");
         }
