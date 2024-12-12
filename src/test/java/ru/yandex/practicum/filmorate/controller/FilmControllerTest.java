@@ -2,8 +2,12 @@ package ru.yandex.practicum.filmorate.controller;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.storage.film.InMemoryFilmStorage;
+import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
 
 import java.time.LocalDate;
 import java.util.Collection;
@@ -14,9 +18,9 @@ class FilmControllerTest {
     private FilmController filmController;
 
     @BeforeEach
-    /*void setUp() {
-        filmController = new FilmController(filmController);
-    }*/
+    void setUp() {
+        filmController = new FilmController(new FilmService(new InMemoryFilmStorage(), new InMemoryUserStorage()));
+    }
 
     @Test
     void createFilmValidFilmShouldReturnFilm() {
@@ -95,7 +99,7 @@ class FilmControllerTest {
         film.setReleaseDate(LocalDate.of(2020, 1, 1));
         film.setDuration(120);
 
-        ValidationException exception = assertThrows(ValidationException.class, () -> filmController.updateFilm(film));
+        NotFoundException exception = assertThrows(NotFoundException.class, () -> filmController.updateFilm(film));
         assertEquals("Фильма с таким айди нет.", exception.getMessage());
     }
 

@@ -2,9 +2,11 @@ package ru.yandex.practicum.filmorate.controller;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
+import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
 
 import java.time.LocalDate;
 import java.util.Collection;
@@ -13,15 +15,10 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class UserControllerTest {
     private UserController userController;
-    private final UserService userService;
-
-    UserControllerTest(UserService userService) {
-        this.userService = userService;
-    }
 
     @BeforeEach
     void setUp() {
-        userController = new UserController(userService);
+        userController = new UserController(new UserService(new InMemoryUserStorage()));
     }
 
     @Test
@@ -125,7 +122,7 @@ class UserControllerTest {
         user.setName("Valid Name");
         user.setBirthday(LocalDate.of(2000, 1, 1));
 
-        ValidationException exception = assertThrows(ValidationException.class, () -> userController.updateUser(user));
+        NotFoundException exception = assertThrows(NotFoundException.class, () -> userController.updateUser(user));
         assertEquals("Пользователя с таким айди нет.", exception.getMessage());
     }
 
