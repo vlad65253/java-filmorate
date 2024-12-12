@@ -3,16 +3,10 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
-import java.time.LocalDate;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
 
 @Slf4j
 @Service
@@ -35,7 +29,8 @@ public class UserService {
     public User getUserById(long id) {
         return userStorage.getUserById(id);
     }
-    public void deleteUser(long id){
+
+    public void deleteUser(long id) {
         userStorage.deleteUser(id);
     }
 
