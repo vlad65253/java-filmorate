@@ -14,9 +14,9 @@ class FilmControllerTest {
     private FilmController filmController;
 
     @BeforeEach
-    void setUp() {
-        filmController = new FilmController();
-    }
+    /*void setUp() {
+        filmController = new FilmController(filmController);
+    }*/
 
     @Test
     void createFilmValidFilmShouldReturnFilm() {
