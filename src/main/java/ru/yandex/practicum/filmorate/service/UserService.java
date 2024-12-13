@@ -35,18 +35,22 @@ public class UserService {
     }
 
     public void addFriend(long userId, long friendId) {
-        userStorage.getUserById(userId).getFriends().add(friendId);
-        log.info("Пользователь {} подружился с {}", userId, friendId);
+        User tempUserOne = userStorage.getUserById(userId);
+        User tempUserTwo = userStorage.getUserById(friendId);
 
-        userStorage.getUserById(friendId).getFriends().add(userId);
+        tempUserOne.getFriends().add(friendId);
+        log.info("Пользователь {} подружился с {}", userId, friendId);
+        tempUserTwo.getFriends().add(userId);
         log.info("Пользователь {} подружился с {}", friendId, userId);
     }
 
     public void deleteFriend(long userId, long friendId) {
-        userStorage.getUserById(userId).getFriends().remove(friendId);
-        log.info("Пользователь {} убрал из друзей {}", friendId, userId);
+        User tempUserOne = userStorage.getUserById(userId);
+        User tempUserTwo = userStorage.getUserById(friendId);
 
-        userStorage.getUserById(friendId).getFriends().remove(userId);
+        tempUserOne.getFriends().remove(friendId);
+        log.info("Пользователь {} убрал из друзей {}", friendId, userId);
+        tempUserTwo.getFriends().remove(userId);
         log.info("Пользователь {} убрал из друзей {}", userId, friendId);
     }
 
