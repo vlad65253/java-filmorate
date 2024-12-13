@@ -3,10 +3,8 @@ package ru.yandex.practicum.filmorate.storage.film;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 
-import java.time.LocalDate;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -27,7 +25,6 @@ public class InMemoryFilmStorage implements FilmStorage {
 
     @Override
     public Film updateFilm(Film filmUpdated) {
-        Film filmTemp = films.get(filmUpdated.getId());
         films.put(filmUpdated.getId(), filmUpdated);
         log.info("Фильм изменен");
         return filmUpdated;
