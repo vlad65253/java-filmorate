@@ -100,7 +100,7 @@ class FilmControllerTest {
         film.setDuration(120);
 
         NotFoundException exception = assertThrows(NotFoundException.class, () -> filmController.updateFilm(film));
-        assertEquals("Фильма с таким айди нет.", exception.getMessage());
+        assertEquals("Фильм с указанным id не найден", exception.getMessage());
     }
 
     @Test
