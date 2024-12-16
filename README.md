@@ -1,3 +1,3 @@
 # java-filmorate
-Template repository for Filmorate project.
-![image](https://github.com/user-attachments/assets/805c6cdd-dc43-44ff-bbb5-c4d7b2c37ae5)
+ER-диаграмма моего проекта Filmorate:
+![2024-12-16_17-10-03](https://github.com/user-attachments/assets/5aa44ed7-e18e-477e-a93c-71778eb17f16)
