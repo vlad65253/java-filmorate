@@ -2,12 +2,19 @@ package ru.yandex.practicum.filmorate.controller;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
+import org.xmlunit.util.Mapper;
+import ru.yandex.practicum.filmorate.dal.*;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.mapper.FilmRowMapper;
+import ru.yandex.practicum.filmorate.mapper.GenreRowMapper;
+import ru.yandex.practicum.filmorate.mapper.UserRowMapper;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.service.FilmService;
-import ru.yandex.practicum.filmorate.storage.film.InMemoryFilmStorage;
-import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
+import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.time.LocalDate;
 import java.util.Collection;
@@ -16,10 +23,16 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class FilmControllerTest {
     private FilmController filmController;
+    BaseRepository<Genre> baseRepository;
 
     @BeforeEach
     void setUp() {
-        filmController = new FilmController(new FilmService(new InMemoryFilmStorage(), new InMemoryUserStorage()));
+        final JdbcTemplate jdbc;
+        final RowMapper<Genre> mapper;
+        filmController = new FilmController(new FilmService(new FilmRepository(new JdbcTemplate(), new FilmRowMapper()),
+                new UserRepository(new JdbcTemplate(), new UserRowMapper()),
+                new GenreRepository(new JdbcTemplate(), new GenreRowMapper()),
+                new LikesRepository(new JdbcTemplate(), new FilmRowMapper())));
     }
 
     @Test
@@ -93,7 +106,7 @@ class FilmControllerTest {
     @Test
     void updateFilmNonExistingIdShouldThrowValidationException() {
         Film film = new Film();
-        film.setId(999L); // Несуществующий ID
+        film.setId(999); // Несуществующий ID
         film.setName("Non-existing Film");
         film.setDescription("This is a valid description.");
         film.setReleaseDate(LocalDate.of(2020, 1, 1));

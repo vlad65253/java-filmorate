@@ -2,11 +2,15 @@ package ru.yandex.practicum.filmorate.controller;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
+import ru.yandex.practicum.filmorate.dal.FriendshipRepository;
+import ru.yandex.practicum.filmorate.dal.UserRepository;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.mapper.UserRowMapper;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
-import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
 
 import java.time.LocalDate;
 import java.util.Collection;
@@ -18,7 +22,9 @@ class UserControllerTest {
 
     @BeforeEach
     void setUp() {
-        userController = new UserController(new UserService(new InMemoryUserStorage()));
+        UserRowMapper um =  new UserRowMapper();
+        userController = new UserController(new UserService(new UserRepository(new JdbcTemplate(), new UserRowMapper()),
+                new FriendshipRepository(new JdbcTemplate(), new UserRowMapper())));
     }
 
     @Test
@@ -116,7 +122,7 @@ class UserControllerTest {
     @Test
     void updateUserNonExistingIdShouldThrowValidationException() {
         User user = new User();
-        user.setId(999L); // Несуществующий ID
+        user.setId(999); // Несуществующий ID
         user.setLogin("validLogin");
         user.setEmail("email@example.com");
         user.setName("Valid Name");

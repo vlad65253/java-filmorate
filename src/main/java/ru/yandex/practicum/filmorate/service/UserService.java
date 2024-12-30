@@ -1,18 +1,26 @@
 package ru.yandex.practicum.filmorate.service;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.dal.FriendshipRepository;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.user.UserStorage;
+import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.util.Collection;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class UserService {
     private final UserStorage userStorage;
+    private final FriendshipRepository friendshipRepository;
+
+    public UserService(@Autowired @Qualifier("userRepository") UserStorage userStorage,
+                       @Autowired FriendshipRepository friendshipRepository) {
+        this.userStorage = userStorage;
+        this.friendshipRepository = friendshipRepository;
+    }
 
     public User createUser(User user) {
         return userStorage.createUser(user);
@@ -26,49 +34,37 @@ public class UserService {
         return userStorage.getUsers();
     }
 
-    public User getUserById(long id) {
+    public User getUserById(Integer id) {
         return userStorage.getUserById(id);
     }
 
-    public void deleteUser(long id) {
+    public void deleteUser(Integer id) {
         userStorage.deleteUser(id);
     }
 
-    public void addFriend(long userId, long friendId) {
-        User tempUserOne = userStorage.getUserById(userId);
-        User tempUserTwo = userStorage.getUserById(friendId);
-
-        tempUserOne.getFriends().add(friendId);
-        log.info("Пользователь {} подружился с {}", userId, friendId);
-        tempUserTwo.getFriends().add(userId);
-        log.info("Пользователь {} подружился с {}", friendId, userId);
+    public void addFriend(Integer userId, Integer friendId) {
+        getUserById(userId);
+        getUserById(friendId);
+        friendshipRepository.addFriend(userId, friendId);
+        log.info("User {} added friend {}", userId, friendId);
     }
 
-    public void deleteFriend(long userId, long friendId) {
-        User tempUserOne = userStorage.getUserById(userId);
-        User tempUserTwo = userStorage.getUserById(friendId);
-
-        tempUserOne.getFriends().remove(friendId);
-        log.info("Пользователь {} убрал из друзей {}", friendId, userId);
-        tempUserTwo.getFriends().remove(userId);
-        log.info("Пользователь {} убрал из друзей {}", userId, friendId);
+    public void deleteFriend(Integer userId, Integer friendId) {
+        getUserById(userId);
+        getUserById(friendId);
+        friendshipRepository.deleteFriend(userId, friendId);
+        log.info("User {} deleted friend {}", userId, friendId);
     }
 
-    public Collection<User> getFriends(long userId) {
-        return userStorage.getUserById(userId).getFriends().stream()
-                .map(userStorage::getUserById)
-                .toList();
+    public Collection<User> getFriends(Integer userId) {
+        getUserById(userId);
+        return friendshipRepository.getAllUserFriends(userId);
     }
 
-    public Collection<User> getGeneralFriend(long firstId, long secondId) {
-        User user = userStorage.getUserById(firstId);
-        User friend = userStorage.getUserById(secondId);
-
-        //Запомнить реализацию нахождения общих друзей
-        return user.getFriends().stream()
-                .filter(userId -> friend.getFriends().contains(userId))
-                .map(userStorage::getUserById)
-                .toList();
+    public Collection<User> getCommonFriend(Integer firstId, Integer secondId) {
+        getUserById(firstId);
+        getUserById(secondId);
+        return friendshipRepository.getCommonFriends(firstId, secondId);
     }
 
 
