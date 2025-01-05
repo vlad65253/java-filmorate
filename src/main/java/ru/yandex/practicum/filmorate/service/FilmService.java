@@ -7,13 +7,11 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dal.GenreRepository;
 import ru.yandex.practicum.filmorate.dal.LikesRepository;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
-import java.net.Inet4Address;
 import java.time.LocalDate;
 import java.util.Collection;
 
@@ -24,6 +22,7 @@ public class FilmService {
     private final UserStorage userStorage;
     private final GenreRepository genreRepository;
     private final LikesRepository likesRepository;
+
     public FilmService(@Autowired @Qualifier("filmRepository") FilmStorage filmStorage,
                        @Autowired @Qualifier("userRepository") UserStorage userStorage,
                        @Autowired GenreRepository genreRepository,
@@ -34,7 +33,6 @@ public class FilmService {
         this.userStorage = userStorage;
     }
 
-    static final LocalDate DATE_BIRTHDAY_CINEMA = LocalDate.of(1895, 12, 28);
 
     public Film createFilm(Film film) {
         Film createdFilm = filmStorage.createFilm(film);
@@ -89,7 +87,7 @@ public class FilmService {
         log.info("Лайк на Фильм {} от пользователя {} убран(", id, userId);
     }
 
-    public Collection<Film> getTopFilms(int count) {
+    public Collection<Film> getTopFilms(Integer count) {
         return filmStorage.getTopFilms(count);
     }
 

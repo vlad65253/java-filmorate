@@ -14,5 +14,6 @@ public interface FilmStorage {
     Film getFilm(Integer id);
 
     void deleteFilm(Integer id);
+
     Collection<Film> getTopFilms(Integer count);
 }

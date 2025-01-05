@@ -37,8 +37,9 @@ public class FilmController {
     public Collection<Film> getFilms() {
         return filmService.getFilms();
     }
+
     @GetMapping("/{id}")
-    public Film gelFilm(@PathVariable int id){
+    public Film gelFilm(@PathVariable int id) {
         return filmService.getFilm(id);
     }
 
@@ -55,7 +56,7 @@ public class FilmController {
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteFilm(@PathVariable int id){
+    public void deleteFilm(@PathVariable int id) {
         filmService.deleteFilm(id);
     }
 }

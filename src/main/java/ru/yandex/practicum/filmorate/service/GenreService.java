@@ -1,6 +1,5 @@
 package ru.yandex.practicum.filmorate.service;
 
-import jakarta.persistence.criteria.CriteriaBuilder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -15,16 +14,20 @@ import java.util.List;
 @RequiredArgsConstructor
 public class GenreService {
     private final GenreRepository genreRepository;
-    public Collection<Genre> getAllGenres(){
+
+    public Collection<Genre> getAllGenres() {
         return genreRepository.getAllGenres();
     }
-    public Genre getGenreById(Integer id){
+
+    public Genre getGenreById(Integer id) {
         return genreRepository.getGenreById(id);
     }
-    public void updateGenre(Integer filmId, List<Integer> genresId){
+
+    public void updateGenre(Integer filmId, List<Integer> genresId) {
         genreRepository.addGenres(filmId, genresId);
     }
-    public void deleteGenere(Integer filmId){
+
+    public void deleteGenere(Integer filmId) {
         genreRepository.delGenres(filmId);
     }
 }

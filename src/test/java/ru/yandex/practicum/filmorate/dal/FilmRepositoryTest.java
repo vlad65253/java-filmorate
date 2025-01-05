@@ -41,7 +41,7 @@ class FilmRepositoryTest {
                 .duration(100)
                 .mpa(new Rating(1, "G"))
                 .genres(Set.of(new Genre(1, "Комедия")))
-                .likedList(Set.of(15,2,7,3))
+                .likedList(Set.of(15, 2, 7, 3))
                 .build();
 
         film2 = Film.builder()
@@ -51,7 +51,7 @@ class FilmRepositoryTest {
                 .duration(100)
                 .mpa(new Rating(2, "PG"))
                 .genres(Set.of(new Genre(2, "Драма")))
-                .likedList(Set.of(1,2,7,3))
+                .likedList(Set.of(1, 2, 7, 3))
                 .build();
 
         film3 = Film.builder()
@@ -61,7 +61,7 @@ class FilmRepositoryTest {
                 .duration(100)
                 .mpa(new Rating(3, "PG-13"))
                 .genres(Set.of(new Genre(6, "Боевик")))
-                .likedList(Set.of(1,15,2,7,3))
+                .likedList(Set.of(1, 15, 2, 7, 3))
                 .build();
     }
 

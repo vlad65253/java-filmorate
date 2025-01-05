@@ -1,7 +1,6 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -15,13 +14,15 @@ import java.util.Collection;
 @RequestMapping("/mpa")
 @RequiredArgsConstructor
 public class RatingController {
-    RatingService ratingService;
+    private final RatingService ratingService;
+
     @GetMapping
-    public Collection<Rating> getAllRatings(){
+    public Collection<Rating> getAllRatings() {
         return ratingService.getAllRating();
     }
+
     @GetMapping("/{id}")
-    public Rating getRatingById(@PathVariable int id){
+    public Rating getRatingById(@PathVariable int id) {
         return ratingService.getRatingById(id);
     }
 }

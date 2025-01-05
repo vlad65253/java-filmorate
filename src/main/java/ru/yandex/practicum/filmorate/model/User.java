@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import jakarta.validation.constraints.*;
@@ -11,6 +12,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Data
+@Builder(toBuilder = true)
 @AllArgsConstructor
 @NoArgsConstructor
 public class User {
@@ -27,11 +29,13 @@ public class User {
     private LocalDate birthday;
     @JsonIgnore
     private Set<Integer> friends = new HashSet<>();
+
     public boolean checkEmail() {
         return email.matches(
                 "^[\\w-.]+@[\\w-]+(\\.[\\w-]+)*\\.[a-z]{2,}$"
         );
     }
+
     public String getName() {
         if (name == null || name.isBlank()) {
             return login;

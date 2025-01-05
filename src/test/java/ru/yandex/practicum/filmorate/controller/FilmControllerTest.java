@@ -4,7 +4,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
-import org.xmlunit.util.Mapper;
 import ru.yandex.practicum.filmorate.dal.*;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
@@ -14,7 +13,6 @@ import ru.yandex.practicum.filmorate.mapper.UserRowMapper;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.service.FilmService;
-import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.time.LocalDate;
 import java.util.Collection;
@@ -29,10 +27,11 @@ class FilmControllerTest {
     void setUp() {
         final JdbcTemplate jdbc;
         final RowMapper<Genre> mapper;
-        filmController = new FilmController(new FilmService(new FilmRepository(new JdbcTemplate(), new FilmRowMapper()),
+        FilmService filmService = new FilmService(new FilmRepository(new JdbcTemplate(), new FilmRowMapper()),
                 new UserRepository(new JdbcTemplate(), new UserRowMapper()),
                 new GenreRepository(new JdbcTemplate(), new GenreRowMapper()),
-                new LikesRepository(new JdbcTemplate(), new FilmRowMapper())));
+                new LikesRepository(new JdbcTemplate(), new FilmRowMapper()));
+        filmController = new FilmController(filmService);
     }
 
     @Test

@@ -1,7 +1,6 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -15,13 +14,15 @@ import java.util.Collection;
 @RequestMapping("/genres")
 @RequiredArgsConstructor
 public class GenreController {
-    GenreService genreService;
+    private final GenreService genreService;
+
     @GetMapping("/{id}")
-    public Genre getGenreById(@PathVariable int id){
+    public Genre getGenreById(@PathVariable int id) {
         return genreService.getGenreById(id);
     }
+
     @GetMapping
-    public Collection<Genre> getAllGenre(){
+    public Collection<Genre> getAllGenre() {
         return genreService.getAllGenres();
     }
 }

@@ -8,8 +8,9 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import ru.yandex.practicum.filmorate.validation.MinimumDate;
 
-import java.security.PrivateKey;
+import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
@@ -18,13 +19,14 @@ import java.util.Set;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder(toBuilder = true)
-public class Film {
+public class Film implements Serializable {
     private Integer id;
     @NotBlank
     private String name;
     @NotBlank
     @Size(max = 200)
     private String description;
+    @MinimumDate
     private LocalDate releaseDate;
     @Positive
     private Integer duration;

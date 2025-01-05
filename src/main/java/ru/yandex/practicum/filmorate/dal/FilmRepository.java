@@ -15,7 +15,7 @@ import java.util.*;
 @Repository
 @Qualifier("filmRepository")
 public class FilmRepository extends BaseRepository<Film> implements FilmStorage {
-    private static final String CREATE_FILM_QUERY = "INSERT INTO FILMS(FILM_NAME, DESCRIPTION, RELEASE_DATE, DURATION, RATING_ID) " +
+    private static final String CREATE_FILM_QUERY = "INSERT INTO FILMS (FILM_NAME, DESCRIPTION, RELEASE_DATE, DURATION, RATING_ID) " +
             "VALUES (?, ?, ?, ?, ?)";
     private static final String UPDATE_FILM_QUERY = "UPDATE FILMS SET FILM_NAME = ?, DESCRIPTION = ?, " +
             "RELEASE_DATE = ?, DURATION = ?, RATING_ID = ? WHERE FILM_ID = ?";
@@ -28,10 +28,10 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
             "GENRE g WHERE fg.GENRE_ID = g.GENRE_ID";
     private static final String GET_GENRES_BY_FILM = "SELECT * FROM GENRE g, FILMS_GENRE fg " +
             "WHERE g.GENRE_ID = fg.GENRE_ID AND fg.FILM_ID = ?";
-    private static final String GET_TOP_FILMS_QUERY = "SELECT * FROM FILMS f LEFT JOIN RATING r " +
-            "ON f.RATING_ID = r.RATING_ID LEFT JOIN (SELECT FILM_ID, COUNT(FILM_ID) AS LIKES FROM LIKE_LIST " +
-            "GROUP BY FILM_ID) fl ON f.FILM_ID = fl.FILM_ID ORDER BY LIKES DESC LIMIT ?";
     private static final String DELETE_FILM_QUERY = "DELETE FROM FILMS WHERE FILM_ID = ?";
+    private static final String QUERY_TOP_FILMS = "SELECT * FROM FILMS f LEFT JOIN RATING m " +
+            "ON f.RATING_ID = m.RATING_ID LEFT JOIN (SELECT FILM_ID, COUNT(FILM_ID) AS LIKES FROM LIKE_LIST " +
+            "GROUP BY FILM_ID) fl ON f.FILM_ID = fl.FILM_ID ORDER BY LIKES DESC LIMIT ?";
 
     @Autowired
     public FilmRepository(JdbcTemplate jdbs, RowMapper<Film> mapper) {
@@ -52,17 +52,15 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
 
     @Override
     public Film updateFilm(Film filmUpdated) {
-        if(!update(UPDATE_FILM_QUERY,
+        update(UPDATE_FILM_QUERY,
                 filmUpdated.getName(),
                 filmUpdated.getDescription(),
                 filmUpdated.getReleaseDate(),
                 filmUpdated.getDuration(),
                 filmUpdated.getMpa().getId(),
-                filmUpdated.getId())){
-            return filmUpdated;
-        } else{
-            return null;
-        }
+                filmUpdated.getId());
+        return filmUpdated;
+
     }
 
     @Override
@@ -76,9 +74,10 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
         }
         return films;
     }
+
     @Override
-    public Collection<Film> getTopFilms(Integer count){
-        Collection<Film> films = findMany(GET_TOP_FILMS_QUERY, count);
+    public Collection<Film> getTopFilms(Integer count) {
+        Collection<Film> films = findMany(QUERY_TOP_FILMS, count);
         Map<Integer, Set<Genre>> genres = getAllGenres();
         for (Film film : films) {
             if (genres.containsKey(film.getId())) {
@@ -87,6 +86,7 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
         }
         return films;
     }
+
     @Override
     public Film getFilm(Integer id) {
         Film film = findOne(GET_FILM_QUERY, id);
@@ -111,6 +111,7 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
             return genres;
         });
     }
+
     private Set<Genre> getGenresByFilm(long filmId) {
         return jdbc.query(GET_GENRES_BY_FILM, (ResultSet rs) -> {
             Set<Genre> genres = new HashSet<>();
