@@ -16,9 +16,10 @@ public class ErrorHandler {
     public ErrorResponse handleValidationException(final Exception e) {
         return new ErrorResponse(e.getMessage());
     }
+
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler({DataIntegrityViolationException.class})
-    public ErrorResponse handleSqlException(final Exception e) {
+    public ErrorResponse handleSqlException(final DataIntegrityViolationException e) {
         return new ErrorResponse(e.getMessage());
     }
 
