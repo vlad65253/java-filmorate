@@ -35,11 +35,4 @@ public class User {
                 "^[\\w-.]+@[\\w-]+(\\.[\\w-]+)*\\.[a-z]{2,}$"
         );
     }
-
-    public String getName() {
-        if (name == null || name.isBlank()) {
-            return login;
-        }
-        return name;
-    }
 }

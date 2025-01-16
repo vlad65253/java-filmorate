@@ -1,7 +1,6 @@
 package ru.yandex.practicum.filmorate.dal;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
@@ -13,7 +12,6 @@ import java.sql.ResultSet;
 import java.util.*;
 
 @Repository
-@Qualifier("filmRepository")
 public class FilmRepository extends BaseRepository<Film> implements FilmStorage {
     private static final String CREATE_FILM_QUERY = "INSERT INTO FILMS (FILM_NAME, DESCRIPTION, RELEASE_DATE, DURATION, RATING_ID) " +
             "VALUES (?, ?, ?, ?, ?)";

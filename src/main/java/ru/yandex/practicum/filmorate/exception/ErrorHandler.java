@@ -12,9 +12,13 @@ public class ErrorHandler {
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler({MethodArgumentNotValidException.class,
-            ValidationException.class,
-            DataIntegrityViolationException.class})
+            ValidationException.class})
     public ErrorResponse handleValidationException(final Exception e) {
+        return new ErrorResponse(e.getMessage());
+    }
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler({DataIntegrityViolationException.class})
+    public ErrorResponse handleSqlException(final Exception e) {
         return new ErrorResponse(e.getMessage());
     }
 
