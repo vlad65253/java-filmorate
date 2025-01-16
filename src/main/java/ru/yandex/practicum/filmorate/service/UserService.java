@@ -16,14 +16,13 @@ public class UserService {
     private final UserStorage userStorage;
     private final FriendshipRepository friendshipRepository;
 
-    public UserService(@Autowired @Qualifier("userRepository") UserStorage userStorage,
-                       @Autowired FriendshipRepository friendshipRepository) {
+    public UserService(@Autowired @Qualifier("userRepository") UserStorage userStorage, @Autowired FriendshipRepository friendshipRepository) {
         this.userStorage = userStorage;
         this.friendshipRepository = friendshipRepository;
     }
 
     public User createUser(User user) {
-        if(user.getName() == null || user.getName().isBlank()){
+        if (user.getName() == null || user.getName().isBlank()) {
             user.setName(user.getLogin());
         }
         return userStorage.createUser(user);
