@@ -1,238 +1,170 @@
 package ru.yandex.practicum.filmorate.controller;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validation;
+import jakarta.validation.Validator;
+import jakarta.validation.ValidatorFactory;
+import org.junit.jupiter.api.*;
+
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.service.UserService;
-import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
 
 import java.time.LocalDate;
-import java.util.Collection;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class UserControllerTest {
-    private UserController userController;
+    private ValidatorFactory validatorFactory;
+    private Validator validator;
 
     @BeforeEach
-    void setUp() {
-        userController = new UserController(new UserService(new InMemoryUserStorage()));
+    void beforeAll() {
+        validatorFactory = Validation.buildDefaultValidatorFactory();
+        validator = validatorFactory.getValidator();
+    }
+
+    @AfterEach
+    void afterAll() {
+        validatorFactory.close();
     }
 
     @Test
-    void createUserValidUserShouldReturnUser() {
-        User user = new User();
-        user.setLogin("validLogin");
-        user.setEmail("email@example.com");
-        user.setName("Valid Name");
-        user.setBirthday(LocalDate.of(2000, 1, 1));
+    void createUser() {
+        User user = User.builder()
+                .name("Test User")
+                .email("test@example.com")
+                .login("testUser")
+                .birthday(LocalDate.of(1990, 1, 1))
+                .build();
 
-        User createdUser = userController.createUser(user);
-
-        assertEquals(user.getLogin(), createdUser.getLogin());
-        assertEquals(user.getEmail(), createdUser.getEmail());
-        assertEquals(user.getName(), createdUser.getName());
-        assertEquals(user.getBirthday(), createdUser.getBirthday());
+        Set<ConstraintViolation<User>> violations = validator.validate(user);
+        assertEquals(0, violations.size());
     }
 
     @Test
-    void createUserLoginWithSpacesShouldThrowValidationException() {
-        User user = new User();
-        user.setLogin("invalid login");
-        user.setEmail("email@example.com");
-        user.setName("Valid Name");
-        user.setBirthday(LocalDate.of(2000, 1, 1));
-
-        ValidationException exception = assertThrows(ValidationException.class, () -> userController.createUser(user));
-        assertEquals("Ошибка валидации логина.", exception.getMessage());
+    void errorCreateEmptyUser() {
+        User user = User.builder().build();
+        Set<ConstraintViolation<User>> violations = validator.validate(user);
+        assertFalse(violations.isEmpty());
     }
 
     @Test
-    void createUserEmptyLoginShouldThrowValidationException() {
-        User user = new User();
-        user.setLogin("");
-        user.setEmail("email@example.com");
-        user.setName("Valid Name");
-        user.setBirthday(LocalDate.of(2000, 1, 1));
+    void errorCreateInvalidEmail() {
+        User user = User.builder()
+                .email("testemail.com@")
+                .login("testUser")
+                .name("Test User")
+                .birthday(LocalDate.of(1990, 1, 1))
+                .build();
 
-        ValidationException exception = assertThrows(ValidationException.class, () -> userController.createUser(user));
-        assertEquals("Ошибка валидации логина.", exception.getMessage());
+        Set<ConstraintViolation<User>> violations = validator.validate(user);
+        assertEquals(1, violations.stream()
+                .filter(v -> v.getPropertyPath().toString().equals("email"))
+                .count());
     }
 
     @Test
-    void createUserEmptyEmailShouldThrowValidationException() {
-        User user = new User();
-        user.setLogin("validLogin");
-        user.setEmail("");
-        user.setName("Valid Name");
-        user.setBirthday(LocalDate.of(2000, 1, 1));
+    void errorCreateNullEmail() {
+        User user = User.builder()
+                .email(null)
+                .login("testUser")
+                .name("Test User")
+                .birthday(LocalDate.of(1990, 1, 1))
+                .build();
 
-        ValidationException exception = assertThrows(ValidationException.class, () -> userController.createUser(user));
-        assertEquals("Ошибка валидации Емаила.", exception.getMessage());
+        Set<ConstraintViolation<User>> violations = validator.validate(user);
+        assertEquals(1, violations.stream()
+                .filter(v -> v.getPropertyPath().toString().equals("email"))
+                .count());
     }
 
     @Test
-    void createUserEmailWithoutAtSymbolShouldThrowValidationException() {
-        User user = new User();
-        user.setLogin("validLogin");
-        user.setEmail("invalidemail.com");
-        user.setName("Valid Name");
-        user.setBirthday(LocalDate.of(2000, 1, 1));
+    void errorCreateNullLogin() {
+        User user = User.builder()
+                .email("test@example.com")
+                .login(null)
+                .name("Test User")
+                .birthday(LocalDate.of(1990, 1, 1))
+                .build();
 
-        ValidationException exception = assertThrows(ValidationException.class, () -> userController.createUser(user));
-        assertEquals("Ошибка валидации Емаила.", exception.getMessage());
+        Set<ConstraintViolation<User>> violations = validator.validate(user);
+        assertEquals(1, violations.stream()
+                .filter(v -> v.getPropertyPath().toString().equals("login"))
+                .count());
     }
 
     @Test
-    void createUserFutureBirthdayShouldThrowValidationException() {
-        User user = new User();
-        user.setLogin("validLogin");
-        user.setEmail("email@example.com");
-        user.setName("Valid Name");
-        user.setBirthday(LocalDate.now().plusDays(1));
+    void errorCreateBlankLogin() {
+        User user = User.builder()
+                .email("test@example.com")
+                .login(" ")
+                .name("Test User")
+                .birthday(LocalDate.of(1990, 1, 1))
+                .build();
 
-        ValidationException exception = assertThrows(ValidationException.class, () -> userController.createUser(user));
-        assertEquals("Ошибка валидации Дня Рождения.", exception.getMessage());
+        Set<ConstraintViolation<User>> violations = validator.validate(user);
+        assertEquals(2, violations.stream()
+                .filter(v -> v.getPropertyPath().toString().equals("login"))
+                .count());
     }
 
     @Test
-    void updateUserValidUserShouldReturnUpdatedUser() {
-        User user = new User();
-        user.setLogin("validLogin");
-        user.setEmail("email@example.com");
-        user.setName("Valid Name");
-        user.setBirthday(LocalDate.of(2000, 1, 1));
+    void errorCreateEmptyLogin() {
+        User user = User.builder()
+                .email("test@example.com")
+                .login("")
+                .name("Test User")
+                .birthday(LocalDate.of(1990, 1, 1))
+                .build();
 
-        User createdUser = userController.createUser(user);
-
-        createdUser.setName("Updated Name");
-        User updatedUser = userController.updateUser(createdUser);
-
-        assertEquals("Updated Name", updatedUser.getName());
+        Set<ConstraintViolation<User>> violations = validator.validate(user);
+        assertEquals(2, violations.stream()
+                .filter(v -> v.getPropertyPath().toString().equals("login"))
+                .count());
     }
 
     @Test
-    void updateUserNonExistingIdShouldThrowValidationException() {
-        User user = new User();
-        user.setId(999L); // Несуществующий ID
-        user.setLogin("validLogin");
-        user.setEmail("email@example.com");
-        user.setName("Valid Name");
-        user.setBirthday(LocalDate.of(2000, 1, 1));
+    void errorSpaceInLogin() {
+        User user = User.builder()
+                .email("test@example.com")
+                .login("test User")
+                .name("Test User")
+                .birthday(LocalDate.of(1990, 1, 1))
+                .build();
 
-        NotFoundException exception = assertThrows(NotFoundException.class, () -> userController.updateUser(user));
-        assertEquals("Пользователя с таким айди нет.", exception.getMessage());
+        Set<ConstraintViolation<User>> violations = validator.validate(user);
+        assertEquals(1, violations.stream()
+                .filter(v -> v.getPropertyPath().toString().equals("login"))
+                .count());
     }
 
     @Test
-    void getUsersShouldReturnAllUsers() {
-        User user1 = new User();
-        user1.setLogin("login1");
-        user1.setEmail("email1@example.com");
-        user1.setName("Name1");
-        user1.setBirthday(LocalDate.of(2000, 1, 1));
+    void errorCreateInvalidBirthday() {
+        User user = User.builder()
+                .email("test@example.com")
+                .login("testUser")
+                .name("Test User")
+                .birthday(LocalDate.now().plusYears(1))
+                .build();
 
-        User user2 = new User();
-        user2.setLogin("login2");
-        user2.setEmail("email2@example.com");
-        user2.setName("Name2");
-        user2.setBirthday(LocalDate.of(1990, 1, 1));
-
-        userController.createUser(user1);
-        userController.createUser(user2);
-
-        Collection<User> users = userController.getUsers();
-
-        assertEquals(2, users.size());
+        Set<ConstraintViolation<User>> violations = validator.validate(user);
+        assertEquals(1, violations.stream()
+                .filter(v -> v.getPropertyPath().toString().equals("birthday"))
+                .count());
     }
 
     @Test
-    void createUserNullBirthdayShouldThrowValidationException() {
-        User user = new User();
-        user.setLogin("validLogin");
-        user.setEmail("email@example.com");
-        user.setName("Valid Name");
-        user.setBirthday(null); // Null birthday
+    void errorCreateInvalidNullBirthday() {
+        User user = User.builder()
+                .email("test@example.com")
+                .login("testUser")
+                .name("Test User")
+                .birthday(null)
+                .build();
 
-        ValidationException exception = assertThrows(ValidationException.class, () -> userController.createUser(user));
-        assertEquals("Ошибка валидации Дня Рождения.", exception.getMessage());
+        Set<ConstraintViolation<User>> violations = validator.validate(user);
+        assertEquals(1, violations.stream()
+                .filter(v -> v.getPropertyPath().toString().equals("birthday"))
+                .count());
     }
-
-    @Test
-    void updateUserNullLoginShouldUseExistingValue() {
-        User user = new User();
-        user.setLogin("validLogin");
-        user.setEmail("email@example.com");
-        user.setName("Valid Name");
-        user.setBirthday(LocalDate.of(2000, 1, 1));
-
-        User createdUser = userController.createUser(user);
-
-        User updatedData = new User();
-        updatedData.setId(createdUser.getId());
-        updatedData.setLogin(null); // Null login
-        updatedData.setEmail("updated_email@example.com");
-        updatedData.setName("Updated Name");
-        updatedData.setBirthday(LocalDate.of(1995, 1, 1));
-
-        User updatedUser = userController.updateUser(updatedData);
-
-        assertEquals("validLogin", updatedUser.getLogin()); // Login remains unchanged
-        assertEquals("updated_email@example.com", updatedUser.getEmail());
-        assertEquals("Updated Name", updatedUser.getName());
-        assertEquals(LocalDate.of(1995, 1, 1), updatedUser.getBirthday());
-    }
-
-    @Test
-    void updateUserNullEmailShouldUseExistingValue() {
-        User user = new User();
-        user.setLogin("validLogin");
-        user.setEmail("email@example.com");
-        user.setName("Valid Name");
-        user.setBirthday(LocalDate.of(2000, 1, 1));
-
-        User createdUser = userController.createUser(user);
-
-        User updatedData = new User();
-        updatedData.setId(createdUser.getId());
-        updatedData.setLogin("updatedLogin");
-        updatedData.setEmail(null); // Null email
-        updatedData.setName("Updated Name");
-        updatedData.setBirthday(LocalDate.of(1995, 1, 1));
-
-        User updatedUser = userController.updateUser(updatedData);
-
-        assertEquals("updatedLogin", updatedUser.getLogin());
-        assertEquals("email@example.com", updatedUser.getEmail()); // Email remains unchanged
-        assertEquals("Updated Name", updatedUser.getName());
-        assertEquals(LocalDate.of(1995, 1, 1), updatedUser.getBirthday());
-    }
-
-    @Test
-    void updateUserNullBirthdayShouldUseExistingValue() {
-        User user = new User();
-        user.setLogin("validLogin");
-        user.setEmail("email@example.com");
-        user.setName("Valid Name");
-        user.setBirthday(LocalDate.of(2000, 1, 1));
-
-        User createdUser = userController.createUser(user);
-
-        User updatedData = new User();
-        updatedData.setId(createdUser.getId());
-        updatedData.setLogin("updatedLogin");
-        updatedData.setEmail("updated_email@example.com");
-        updatedData.setName("Updated Name");
-        updatedData.setBirthday(null); // Null birthday
-
-        User updatedUser = userController.updateUser(updatedData);
-
-        assertEquals("updatedLogin", updatedUser.getLogin());
-        assertEquals("updated_email@example.com", updatedUser.getEmail());
-        assertEquals("Updated Name", updatedUser.getName());
-        assertEquals(LocalDate.of(2000, 1, 1), updatedUser.getBirthday()); // Birthday remains unchanged
-    }
-
 }

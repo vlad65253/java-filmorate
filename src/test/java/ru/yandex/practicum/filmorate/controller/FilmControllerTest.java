@@ -1,269 +1,209 @@
 package ru.yandex.practicum.filmorate.controller;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validation;
+import jakarta.validation.Validator;
+import jakarta.validation.ValidatorFactory;
+import org.junit.jupiter.api.*;
+
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.service.FilmService;
-import ru.yandex.practicum.filmorate.storage.film.InMemoryFilmStorage;
-import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
 
 import java.time.LocalDate;
-import java.util.Collection;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class FilmControllerTest {
-    private FilmController filmController;
+    private static ValidatorFactory validatorFactory;
+    private static Validator validator;
 
     @BeforeEach
-    void setUp() {
-        filmController = new FilmController(new FilmService(new InMemoryFilmStorage(), new InMemoryUserStorage()));
+    void beforeEach() {
+        validatorFactory = Validation.buildDefaultValidatorFactory();
+        validator = validatorFactory.getValidator();
+    }
+
+    @AfterEach
+    void afterEach() {
+        validatorFactory.close();
     }
 
     @Test
-    void createFilmValidFilmShouldReturnFilm() {
-        Film film = new Film();
-        film.setName("Valid Film");
-        film.setDescription("This is a valid description.");
-        film.setReleaseDate(LocalDate.of(2020, 1, 1));
-        film.setDuration(120);
-
-        Film createdFilm = filmController.createFilm(film);
-
-        assertEquals(film.getName(), createdFilm.getName());
-        assertEquals(film.getDescription(), createdFilm.getDescription());
-        assertEquals(film.getReleaseDate(), createdFilm.getReleaseDate());
-        assertEquals(film.getDuration(), createdFilm.getDuration());
+    void createFilm() {
+        Film film = Film.builder()
+                .name("Test Film")
+                .description("Test description")
+                .releaseDate(LocalDate.of(2022, 1, 1))
+                .duration(100)
+                .build();
+        Set<ConstraintViolation<Film>> violations = validator.validate(film);
+        assertEquals(0, violations.size());
     }
 
     @Test
-    void createFilmDescriptionTooLongShouldThrowValidationException() {
-        Film film = new Film();
-        film.setName("Valid Film");
-        film.setDescription("A".repeat(201)); // 201 символ
-        film.setReleaseDate(LocalDate.of(2020, 1, 1));
-        film.setDuration(120);
-
-        ValidationException exception = assertThrows(ValidationException.class, () -> filmController.createFilm(film));
-        assertEquals("Ошибка валидации описания.", exception.getMessage());
+    void errorCreateEmptyFilm() {
+        Film film = Film.builder().build();
+        Set<ConstraintViolation<Film>> violations = validator.validate(film);
+        assertFalse(violations.isEmpty());
     }
 
     @Test
-    void createFilmReleaseDateTooEarlyShouldThrowValidationException() {
-        Film film = new Film();
-        film.setName("Valid Film");
-        film.setDescription("This is a valid description.");
-        film.setReleaseDate(LocalDate.of(1895, 12, 27)); // Релиз до 28 декабря 1895
-        film.setDuration(120);
+    void errorCreateNullNameFilm() {
+        Film film = Film.builder()
+                .name(null)
+                .description("Test description")
+                .releaseDate(LocalDate.of(2022, 1, 1))
+                .duration(100)
+                .build();
 
-        ValidationException exception = assertThrows(ValidationException.class, () -> filmController.createFilm(film));
-        assertEquals("Ошибка валидации даты создания.", exception.getMessage());
+        Set<ConstraintViolation<Film>> violations = validator.validate(film);
+        assertFalse(violations.isEmpty());
+        assertEquals(1, violations.stream()
+                .filter(v -> v.getPropertyPath().toString().equals("name"))
+                .count());
     }
 
     @Test
-    void createFilmNegativeDurationShouldThrowValidationException() {
-        Film film = new Film();
-        film.setName("Valid Film");
-        film.setDescription("This is a valid description.");
-        film.setReleaseDate(LocalDate.of(2020, 1, 1));
-        film.setDuration(-1);
+    void errorCreateBlankNameFilm() {
+        Film film = Film.builder()
+                .name(" ")
+                .description("Test description")
+                .releaseDate(LocalDate.of(2022, 1, 1))
+                .duration(100)
+                .build();
 
-        ValidationException exception = assertThrows(ValidationException.class, () -> filmController.createFilm(film));
-        assertEquals("Ошибка валидации продолжительности фильма.", exception.getMessage());
+        Set<ConstraintViolation<Film>> violations = validator.validate(film);
+        assertFalse(violations.isEmpty());
+        assertEquals(1, violations.stream()
+                .filter(v -> v.getPropertyPath().toString().equals("name"))
+                .count());
     }
 
     @Test
-    void updateFilmValidFilmShouldReturnUpdatedFilm() {
-        Film film = new Film();
-        film.setName("Valid Film");
-        film.setDescription("This is a valid description.");
-        film.setReleaseDate(LocalDate.of(2020, 1, 1));
-        film.setDuration(120);
+    void errorCreateEmptyNameFilm() {
+        Film film = Film.builder()
+                .name("")
+                .description("Test description")
+                .releaseDate(LocalDate.of(2022, 1, 1))
+                .duration(100)
+                .build();
 
-        Film createdFilm = filmController.createFilm(film);
-
-        createdFilm.setDescription("Updated description.");
-        Film updatedFilm = filmController.updateFilm(createdFilm);
-
-        assertEquals("Updated description.", updatedFilm.getDescription());
+        Set<ConstraintViolation<Film>> violations = validator.validate(film);
+        assertFalse(violations.isEmpty());
+        assertEquals(1, violations.stream()
+                .filter(v -> v.getPropertyPath().toString().equals("name"))
+                .count());
     }
 
     @Test
-    void updateFilmNonExistingIdShouldThrowValidationException() {
-        Film film = new Film();
-        film.setId(999L); // Несуществующий ID
-        film.setName("Non-existing Film");
-        film.setDescription("This is a valid description.");
-        film.setReleaseDate(LocalDate.of(2020, 1, 1));
-        film.setDuration(120);
+    void errorCreateNullDescriptionFilm() {
+        Film film = Film.builder()
+                .name("Test Film")
+                .description(null)
+                .releaseDate(LocalDate.of(2022, 1, 1))
+                .duration(100)
+                .build();
 
-        NotFoundException exception = assertThrows(NotFoundException.class, () -> filmController.updateFilm(film));
-        assertEquals("Фильм с указанным id не найден", exception.getMessage());
+        Set<ConstraintViolation<Film>> violations = validator.validate(film);
+        assertFalse(violations.isEmpty());
+        assertEquals(1, violations.stream()
+                .filter(v -> v.getPropertyPath().toString().equals("description"))
+                .count());
     }
 
     @Test
-    void updateFilmDescriptionTooLongShouldThrowValidationException() {
-        Film film = new Film();
-        film.setName("Valid Film");
-        film.setDescription("This is a valid description.");
-        film.setReleaseDate(LocalDate.of(2020, 1, 1));
-        film.setDuration(120);
+    void errorCreateBlankDescriptionFilm() {
+        Film film = Film.builder()
+                .name("Test Film")
+                .description(" ")
+                .releaseDate(LocalDate.of(2022, 1, 1))
+                .duration(100)
+                .build();
 
-        Film createdFilm = filmController.createFilm(film);
-
-        createdFilm.setDescription("A".repeat(201)); // 201 символ
-        ValidationException exception = assertThrows(ValidationException.class, () -> filmController.updateFilm(createdFilm));
-        assertEquals("Ошибка валидации описания.", exception.getMessage());
+        Set<ConstraintViolation<Film>> violations = validator.validate(film);
+        assertFalse(violations.isEmpty());
+        assertEquals(1, violations.stream()
+                .filter(v -> v.getPropertyPath().toString().equals("description"))
+                .count());
     }
 
     @Test
-    void getFilmsShouldReturnAllFilms() {
-        Film film1 = new Film();
-        film1.setName("Film 1");
-        film1.setDescription("Description 1");
-        film1.setReleaseDate(LocalDate.of(2020, 1, 1));
-        film1.setDuration(120);
+    void errorCreateEmptyDescriptionFilm() {
+        Film film = Film.builder()
+                .name("Test Film")
+                .description("")
+                .releaseDate(LocalDate.of(2022, 1, 1))
+                .duration(100)
+                .build();
 
-        Film film2 = new Film();
-        film2.setName("Film 2");
-        film2.setDescription("Description 2");
-        film2.setReleaseDate(LocalDate.of(2021, 1, 1));
-        film2.setDuration(150);
-
-        filmController.createFilm(film1);
-        filmController.createFilm(film2);
-
-        Collection<Film> films = filmController.getFilms();
-
-        assertEquals(2, films.size());
-        assertTrue(films.contains(film1));
-        assertTrue(films.contains(film2));
+        Set<ConstraintViolation<Film>> violations = validator.validate(film);
+        assertFalse(violations.isEmpty());
+        assertEquals(1, violations.stream()
+                .filter(v -> v.getPropertyPath().toString().equals("description"))
+                .count());
     }
 
     @Test
-    void createFilmNullReleaseDateShouldThrowValidationException() {
-        Film film = new Film();
-        film.setName("Valid Film");
-        film.setDescription("This is a valid description.");
-        film.setReleaseDate(null); // Null release date
-        film.setDuration(120);
+    void errorCreateDescriptionTooLongFilm() {
+        Film film = Film.builder()
+                .name("Test Film")
+                .description("O".repeat(300))
+                .releaseDate(LocalDate.of(2022, 1, 1))
+                .duration(100)
+                .build();
 
-        ValidationException exception = assertThrows(ValidationException.class, () -> filmController.createFilm(film));
-        assertEquals("Ошибка валидации даты создания.", exception.getMessage());
+        Set<ConstraintViolation<Film>> violations = validator.validate(film);
+        assertFalse(violations.isEmpty());
+        assertEquals(1, violations.stream()
+                .filter(v -> v.getPropertyPath().toString().equals("description"))
+                .count());
     }
 
     @Test
-    void createFilmNullDurationShouldThrowValidationException() {
-        Film film = new Film();
-        film.setName("Valid Film");
-        film.setDescription("This is a valid description.");
-        film.setReleaseDate(LocalDate.of(2020, 1, 1));
-        film.setDuration(null); // Null duration
+    void errorCreateNullReleaseDateFilm() {
+        Film film = Film.builder()
+                .name("Test Film")
+                .description("Test description")
+                .releaseDate(null)
+                .duration(100)
+                .build();
 
-        ValidationException exception = assertThrows(ValidationException.class, () -> filmController.createFilm(film));
-        assertEquals("Ошибка валидации продолжительности фильма.", exception.getMessage());
+        Set<ConstraintViolation<Film>> violations = validator.validate(film);
+        assertFalse(violations.isEmpty());
+        assertEquals(1, violations.stream()
+                .filter(v -> v.getPropertyPath().toString().equals("releaseDate"))
+                .count());
     }
 
     @Test
-    void updateFilmNullNameShouldUseExistingValue() {
-        Film film = new Film();
-        film.setName("Valid Film");
-        film.setDescription("This is a valid description.");
-        film.setReleaseDate(LocalDate.of(2020, 1, 1));
-        film.setDuration(120);
+    void errorCreateReleaseDateBeforeFilmsDateFilm() {
+        Film film = Film.builder()
+                .name("Test Film")
+                .description("Test description")
+                .releaseDate(LocalDate.of(1895, 12, 27))
+                .duration(100)
+                .build();
 
-        Film createdFilm = filmController.createFilm(film);
-
-        Film updateFilm = new Film();
-        updateFilm.setId(createdFilm.getId());
-        updateFilm.setName(null); // Null name
-        updateFilm.setDescription("Updated description.");
-        updateFilm.setReleaseDate(LocalDate.of(2021, 1, 1));
-        updateFilm.setDuration(150);
-
-        Film updatedFilm = filmController.updateFilm(updateFilm);
-
-        assertEquals("Valid Film", updatedFilm.getName()); // Name remains unchanged
-        assertEquals("Updated description.", updatedFilm.getDescription());
-        assertEquals(LocalDate.of(2021, 1, 1), updatedFilm.getReleaseDate());
-        assertEquals(150, updatedFilm.getDuration());
+        Set<ConstraintViolation<Film>> violations = validator.validate(film);
+        assertFalse(violations.isEmpty());
+        assertEquals(1, violations.stream()
+                .filter(v -> v.getPropertyPath().toString().equals("releaseDate"))
+                .count());
     }
 
     @Test
-    void updateFilmNullDescriptionShouldUseExistingValue() {
-        Film film = new Film();
-        film.setName("Valid Film");
-        film.setDescription("This is a valid description.");
-        film.setReleaseDate(LocalDate.of(2020, 1, 1));
-        film.setDuration(120);
+    void errorCreateNegativeDurationFilm() {
+        Film film = Film.builder()
+                .name("Test Film")
+                .description("Test description")
+                .releaseDate(LocalDate.of(2022, 1, 1))
+                .duration(-100)
+                .build();
 
-        Film createdFilm = filmController.createFilm(film);
-
-        Film updateFilm = new Film();
-        updateFilm.setId(createdFilm.getId());
-        updateFilm.setName("Updated Name");
-        updateFilm.setDescription(null); // Null description
-        updateFilm.setReleaseDate(LocalDate.of(2021, 1, 1));
-        updateFilm.setDuration(150);
-
-        Film updatedFilm = filmController.updateFilm(updateFilm);
-
-        assertEquals("Updated Name", updatedFilm.getName());
-        assertEquals("This is a valid description.", updatedFilm.getDescription()); // Description remains unchanged
-        assertEquals(LocalDate.of(2021, 1, 1), updatedFilm.getReleaseDate());
-        assertEquals(150, updatedFilm.getDuration());
+        Set<ConstraintViolation<Film>> violations = validator.validate(film);
+        assertFalse(violations.isEmpty());
+        assertEquals(1, violations.stream()
+                .filter(v -> v.getPropertyPath().toString().equals("duration"))
+                .count());
     }
-
-    @Test
-    void updateFilmNullReleaseDateShouldUseExistingValue() {
-        Film film = new Film();
-        film.setName("Valid Film");
-        film.setDescription("This is a valid description.");
-        film.setReleaseDate(LocalDate.of(2020, 1, 1));
-        film.setDuration(120);
-
-        Film createdFilm = filmController.createFilm(film);
-
-        Film updateFilm = new Film();
-        updateFilm.setId(createdFilm.getId());
-        updateFilm.setName("Updated Name");
-        updateFilm.setDescription("Updated description.");
-        updateFilm.setReleaseDate(null); // Null release date
-        updateFilm.setDuration(150);
-
-        Film updatedFilm = filmController.updateFilm(updateFilm);
-
-        assertEquals("Updated Name", updatedFilm.getName());
-        assertEquals("Updated description.", updatedFilm.getDescription());
-        assertEquals(LocalDate.of(2020, 1, 1), updatedFilm.getReleaseDate()); // Release date remains unchanged
-        assertEquals(150, updatedFilm.getDuration());
-    }
-
-    @Test
-    void updateFilmNullDurationShouldUseExistingValue() {
-        Film film = new Film();
-        film.setName("Valid Film");
-        film.setDescription("This is a valid description.");
-        film.setReleaseDate(LocalDate.of(2020, 1, 1));
-        film.setDuration(120);
-
-        Film createdFilm = filmController.createFilm(film);
-
-        Film updateFilm = new Film();
-        updateFilm.setId(createdFilm.getId());
-        updateFilm.setName("Updated Name");
-        updateFilm.setDescription("Updated description.");
-        updateFilm.setReleaseDate(LocalDate.of(2021, 1, 1));
-        updateFilm.setDuration(null); // Null duration
-
-        Film updatedFilm = filmController.updateFilm(updateFilm);
-
-        assertEquals("Updated Name", updatedFilm.getName());
-        assertEquals("Updated description.", updatedFilm.getDescription());
-        assertEquals(LocalDate.of(2021, 1, 1), updatedFilm.getReleaseDate());
-        assertEquals(120, updatedFilm.getDuration()); // Duration remains unchanged
-    }
-
 }

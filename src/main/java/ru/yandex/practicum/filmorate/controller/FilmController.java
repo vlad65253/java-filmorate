@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -18,7 +19,7 @@ public class FilmController {
 
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping
-    public Film createFilm(@RequestBody Film film) {
+    public Film createFilm(@Valid @RequestBody Film film) {
         return filmService.createFilm(film);
     }
 
@@ -28,13 +29,18 @@ public class FilmController {
     }
 
     @PutMapping("/{id}/like/{userId}")
-    public void likingFilm(@PathVariable long id, @PathVariable long userId) {
-        filmService.likeFilm(id, userId);
+    public Film likingFilm(@PathVariable int id, @PathVariable int userId) {
+        return filmService.likeFilm(id, userId);
     }
 
     @GetMapping
     public Collection<Film> getFilms() {
         return filmService.getFilms();
+    }
+
+    @GetMapping("/{id}")
+    public Film getFilm(@PathVariable int id) {
+        return filmService.getFilm(id);
     }
 
     @GetMapping("/popular")
@@ -44,8 +50,13 @@ public class FilmController {
 
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/{id}/like/{userId}")
-    public void deleteLike(@PathVariable long id, @PathVariable long userId) {
+    public void deleteLike(@PathVariable int id, @PathVariable int userId) {
         filmService.dellikeFilm(id, userId);
     }
 
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteFilm(@PathVariable int id) {
+        filmService.deleteFilm(id);
+    }
 }
