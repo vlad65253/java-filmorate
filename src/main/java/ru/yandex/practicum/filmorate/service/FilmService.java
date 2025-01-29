@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.dal.FilmRepository;
 import ru.yandex.practicum.filmorate.dal.GenreRepository;
 import ru.yandex.practicum.filmorate.dal.LikesRepository;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
@@ -21,21 +22,32 @@ public class FilmService {
     private final UserStorage userStorage;
     private final GenreRepository genreRepository;
     private final LikesRepository likesRepository;
+    private final FilmRepository filmRepository;
+
 
     public FilmService(@Autowired @Qualifier("filmRepository") FilmStorage filmStorage,
                        @Autowired @Qualifier("userRepository") UserStorage userStorage,
                        @Autowired GenreRepository genreRepository,
-                       @Autowired LikesRepository likesRepository) {
+                       @Autowired LikesRepository likesRepository,
+                       @Autowired FilmRepository filmRepository) {
         this.filmStorage = filmStorage;
         this.genreRepository = genreRepository;
         this.likesRepository = likesRepository;
         this.userStorage = userStorage;
+        this.filmRepository = filmRepository;
     }
 
-
     public Film createFilm(Film film) {
+        if (!filmRepository.ratingExists(film.getMpa().getId())) {
+            throw new NotFoundException("Rating with ID " + film.getMpa().getId() + " not found");
+        }
         Film createdFilm = filmStorage.createFilm(film);
         if (!createdFilm.getGenres().isEmpty()) {
+            for (Genre genre : createdFilm.getGenres()) {
+                if (!genreRepository.genreExists(genre.getId())) {
+                    throw new NotFoundException("Genre with ID " + genre.getId() + " not found");
+                }
+            }
             genreRepository.addGenres(createdFilm.getId(), createdFilm.getGenres()
                     .stream()
                     .map(Genre::getId)
@@ -47,6 +59,9 @@ public class FilmService {
     public Film updateFilm(Film filmUpdated) {
         if (filmStorage.getFilm(filmUpdated.getId()) == null) {
             throw new NotFoundException("Не передан идентификатор фильма");
+        }
+        if (!filmRepository.ratingExists(filmUpdated.getMpa().getId())) {
+            throw new NotFoundException("Rating with ID " + filmUpdated.getMpa().getId() + " not found");
         }
         Film updatedFilm = filmStorage.updateFilm(filmUpdated);
         if (!updatedFilm.getGenres().isEmpty()) {
