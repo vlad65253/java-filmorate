@@ -50,4 +50,14 @@ public class GenreRepository extends BaseRepository<Genre> {
     public void delGenres(long id) {
         delete(DEL_GENRE_QUERY, id);
     }
+
+    public boolean genreExists(Integer genreId) {
+        Integer count = jdbc.queryForObject(
+                "SELECT COUNT(*) FROM GENRE WHERE GENRE_ID = ?",
+                Integer.class,
+                genreId
+        );
+        return count != null && count > 0;
+    }
+
 }

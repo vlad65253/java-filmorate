@@ -30,6 +30,8 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
     private static final String QUERY_TOP_FILMS = "SELECT * FROM FILMS f LEFT JOIN RATING m " +
             "ON f.RATING_ID = m.RATING_ID LEFT JOIN (SELECT FILM_ID, COUNT(FILM_ID) AS LIKES FROM LIKE_LIST " +
             "GROUP BY FILM_ID) fl ON f.FILM_ID = fl.FILM_ID ORDER BY LIKES DESC LIMIT ?";
+    private static final String QUERY_FIND_RATING = "SELECT * FROM RATING WHERE RATING_ID = ?";
+    private static final String QUERY_FIND_GENRE = "SELECT * FROM FILMS_GENRE WHERE FILM_ID = ?";
 
     @Autowired
     public FilmRepository(JdbcTemplate jdbs, RowMapper<Film> mapper) {
@@ -95,6 +97,15 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
     @Override
     public void deleteFilm(Integer id) {
         delete(DELETE_FILM_QUERY, id);
+    }
+
+    public boolean ratingExists(Integer ratingId) {
+        Integer count = jdbc.queryForObject(
+                "SELECT COUNT(*) FROM RATING WHERE RATING_ID = ?",
+                Integer.class,
+                ratingId
+        );
+        return count != null && count > 0;
     }
 
     private Map<Integer, Set<Genre>> getAllGenres() {
