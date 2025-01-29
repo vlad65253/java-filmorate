@@ -60,14 +60,14 @@ INSERT INTO DIRECTORS (DIRECTOR_NAME) VALUES
 ('Светлана Кузнецова');
 
 INSERT INTO RATING (RATING_NAME) VALUES
-('G - Все возрасты'),
-('PG - Рекомендуется родителями'),
-('PG-13 - С некоторыми ограничениями'),
-('R - Для взрослых'),
-('NC-17 - Только для взрослых'),
-('E - Все дети'),
-('T - Подростки'),
-('M - Для взрослых');
+('G'),
+('PG'),
+('PG-13'),
+('R'),
+('NC-17'),
+('E'),
+('T'),
+('M');
 
 INSERT INTO FILMS (RATING_ID, NAME, DESCRIPTION, RELEASE_DATE, DURATION, DIRECTOR_ID) VALUES
 (1, 'Веселый ветер', 'Комедия о жизни в небольшом городе.', '2018-06-12', 95, 1),
