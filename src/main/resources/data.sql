@@ -1,15 +1,15 @@
 SET REFERENTIAL_INTEGRITY FALSE;
 
-TRUNCATE TABLE FILMS_GENRE CASCADE;
-TRUNCATE TABLE REVIEWS CASCADE;
-TRUNCATE TABLE LIKE_LIST CASCADE;
-TRUNCATE TABLE EVENTS CASCADE;
-TRUNCATE TABLE FRIENDS_LIST CASCADE;
-TRUNCATE TABLE FILMS CASCADE;
-TRUNCATE TABLE GENRE CASCADE;
-TRUNCATE TABLE DIRECTORS CASCADE;
-TRUNCATE TABLE RATING CASCADE;
-TRUNCATE TABLE USERS CASCADE;
+TRUNCATE TABLE FILMS_GENRE RESTART IDENTITY;
+TRUNCATE TABLE REVIEWS RESTART IDENTITY;
+TRUNCATE TABLE LIKE_LIST RESTART IDENTITY;
+TRUNCATE TABLE EVENTS RESTART IDENTITY;
+TRUNCATE TABLE FRIENDS_LIST RESTART IDENTITY;
+TRUNCATE TABLE FILMS RESTART IDENTITY;
+TRUNCATE TABLE GENRE RESTART IDENTITY;
+TRUNCATE TABLE DIRECTORS RESTART IDENTITY;
+TRUNCATE TABLE RATING RESTART IDENTITY;
+TRUNCATE TABLE USERS RESTART IDENTITY;
 
 SET REFERENTIAL_INTEGRITY TRUE;
 
@@ -69,17 +69,17 @@ INSERT INTO RATING (RATING_NAME) VALUES
 ('T'),
 ('M');
 
-INSERT INTO FILMS (RATING_ID, NAME, DESCRIPTION, RELEASE_DATE, DURATION, DIRECTOR_ID) VALUES
+INSERT INTO FILMS (RATING_ID, FILM_NAME, DESCRIPTION, RELEASE_DATE, DURATION, DIRECTOR_ID) VALUES
 (1, 'Веселый ветер', 'Комедия о жизни в небольшом городе.', '2018-06-12', 95, 1),
 (2, 'Тени прошлого', 'Драма о семейных тайнах.', '2019-11-05', 120, 2),
 (3, 'Последний час', 'Триллер о поиске истины.', '2020-03-22', 110, 3),
 (4, 'Звездные врата', 'Фантастический фильм о космических путешествиях.', '2021-07-30', 130, 4),
 (5, 'Сказка о Храбрецах', 'Мультфильм для всей семьи.', '2022-12-15', 80, 5),
 (6, 'Музыкальная ночь', 'Мюзикл о мечтах и любви.', '2023-05-20', 105, 11),
-(7, 'Истории нашего города', 'Исторический фильм о становлении города.', '2024-09-10', 140, 12),
-(8, 'Магический мир', 'Фэнтези о волшебных приключениях.', '2025-01-15', 115, 13),
-(9, 'Криминальный след', 'Криминальный триллер о расследовании преступлений.', '2023-08-08', 100, 14),
-(10, 'Спортивный дух', 'Фильм о преодолении и достижении целей.', '2024-02-20', 90, 15);
+(2, 'Истории нашего города', 'Исторический фильм о становлении города.', '2024-09-10', 140, 12),
+(3, 'Магический мир', 'Фэнтези о волшебных приключениях.', '2025-01-15', 115, 13),
+(4, 'Криминальный след', 'Криминальный триллер о расследовании преступлений.', '2023-08-08', 100, 14),
+(5, 'Спортивный дух', 'Фильм о преодолении и достижении целей.', '2024-02-20', 90, 15);
 
 INSERT INTO FILMS_GENRE (FILM_ID, GENRE_ID) VALUES
 (1, 1),
