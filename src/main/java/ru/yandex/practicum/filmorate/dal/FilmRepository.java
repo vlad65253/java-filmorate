@@ -13,10 +13,10 @@ import java.util.*;
 
 @Repository
 public class FilmRepository extends BaseRepository<Film> implements FilmStorage {
-    private static final String CREATE_FILM_QUERY = "INSERT INTO FILMS (FILM_NAME, DESCRIPTION, RELEASE_DATE, DURATION, RATING_ID) " +
-            "VALUES (?, ?, ?, ?, ?)";
+    private static final String CREATE_FILM_QUERY = "INSERT INTO FILMS (FILM_NAME, DESCRIPTION, RELEASE_DATE, DURATION, RATING_ID, DIRECTOR_ID) " +
+            "VALUES (?, ?, ?, ?, ?, ?)";
     private static final String UPDATE_FILM_QUERY = "UPDATE FILMS SET FILM_NAME = ?, DESCRIPTION = ?, " +
-            "RELEASE_DATE = ?, DURATION = ?, RATING_ID = ? WHERE FILM_ID = ?";
+            "RELEASE_DATE = ?, DURATION = ?, RATING_ID = ?, DIRECTOR_ID = ? WHERE FILM_ID = ?";
     private static final String GET_ALL_FILMS_QUERY = "SELECT * FROM FILMS f, " +
             "RATING r WHERE f.RATING_ID = r.RATING_ID";
     private static final String GET_FILM_QUERY = "SELECT * FROM FILMS f, RATING r " +
@@ -30,8 +30,7 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
     private static final String QUERY_TOP_FILMS = "SELECT * FROM FILMS f LEFT JOIN RATING m " +
             "ON f.RATING_ID = m.RATING_ID LEFT JOIN (SELECT FILM_ID, COUNT(FILM_ID) AS LIKES FROM LIKE_LIST " +
             "GROUP BY FILM_ID) fl ON f.FILM_ID = fl.FILM_ID ORDER BY LIKES DESC LIMIT ?";
-    private static final String QUERY_FIND_RATING = "SELECT * FROM RATING WHERE RATING_ID = ?";
-    private static final String QUERY_FIND_GENRE = "SELECT * FROM FILMS_GENRE WHERE FILM_ID = ?";
+    private static final String QUERY_EXISTS_RATING = "SELECT COUNT(*) FROM RATING WHERE RATING_ID = ?";
 
     @Autowired
     public FilmRepository(JdbcTemplate jdbs, RowMapper<Film> mapper) {
@@ -45,7 +44,8 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
                 film.getDescription(),
                 film.getReleaseDate(),
                 film.getDuration(),
-                film.getMpa().getId());
+                film.getMpa().getId(),
+                film.getDirector().getId());
         film.setId(id);
         return film;
     }
@@ -58,7 +58,8 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
                 filmUpdated.getReleaseDate(),
                 filmUpdated.getDuration(),
                 filmUpdated.getMpa().getId(),
-                filmUpdated.getId());
+                filmUpdated.getId(),
+                filmUpdated.getDirector().getId());
         return filmUpdated;
 
     }
@@ -101,7 +102,7 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
 
     public boolean ratingExists(Integer ratingId) {
         Integer count = jdbc.queryForObject(
-                "SELECT COUNT(*) FROM RATING WHERE RATING_ID = ?",
+                QUERY_EXISTS_RATING,
                 Integer.class,
                 ratingId
         );

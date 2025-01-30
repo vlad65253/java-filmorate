@@ -34,4 +34,5 @@ public class Film implements Serializable {
     @JsonIgnore
     private Set<Integer> likedList = new HashSet<>();
     private Set<Genre> genres = new HashSet<>();
+    private Director director;
 }
