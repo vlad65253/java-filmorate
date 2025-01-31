@@ -13,31 +13,17 @@ TRUNCATE TABLE USERS RESTART IDENTITY;
 
 SET REFERENTIAL_INTEGRITY TRUE;
 
+INSERT INTO GENRE (GENRE_NAME)
+VALUES ('Комедия'),
+       ('Драма'),
+       ('Мультфильм'),
+       ('Триллер'),
+       ('Документальный'),
+       ('Боевик');
 
-INSERT INTO GENRE (GENRE_NAME) VALUES
-('Комедия'),
-('Драма'),
-('Триллер'),
-('Фантастика'),
-('Мультфильм'),
-('Боевик'),
-('Мелодрама'),
-('Ужасы'),
-('Документальный'),
-('Приключения'),
-('Мюзикл'),
-('Исторический'),
-('Фэнтези'),
-('Криминал'),
-('Спорт');
-
-
-INSERT INTO RATING (RATING_NAME) VALUES
-('G'),
-('PG'),
-('PG-13'),
-('R'),
-('NC-17'),
-('E'),
-('T'),
-('M');
+INSERT INTO RATING (RATING_NAME)
+VALUES ('G'),
+       ('PG'),
+       ('PG-13'),
+       ('R'),
+       ('NC-17');
