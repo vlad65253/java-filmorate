@@ -12,8 +12,7 @@ import ru.yandex.practicum.filmorate.validation.MinimumDate;
 
 import java.io.Serializable;
 import java.time.LocalDate;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 @Data
 @AllArgsConstructor
@@ -33,5 +32,6 @@ public class Film implements Serializable {
     private Rating mpa;
     @JsonIgnore
     private Set<Integer> likedList = new HashSet<>();
-    private Set<Genre> genres = new HashSet<>();
+    private Collection<Genre> genres = new HashSet<>();
+    private Collection<Director> directors = new HashSet<>();
 }
