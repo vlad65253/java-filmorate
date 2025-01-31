@@ -10,6 +10,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Rating {
-    @Min(0) @Max(4) private Integer id;
+    private Integer id;
     private String name;
 }
