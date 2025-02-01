@@ -49,7 +49,6 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
             ORDER BY COUNT_LIKES DESC
             """;
     private static final String QUERY_EXISTS_RATING = "SELECT COUNT(*) FROM RATING WHERE RATING_ID = ?";
-    private static final String QUERY_EXISTS_GENRE = "SELECT COUNT(*) FROM GENRE WHERE GENRE_ID = ?";
 
     @Autowired
     public FilmRepository(JdbcTemplate jdbs, RowMapper<Film> mapper) {
