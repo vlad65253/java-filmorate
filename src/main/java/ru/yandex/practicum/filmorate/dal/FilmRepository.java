@@ -30,6 +30,26 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
     private static final String QUERY_TOP_FILMS = "SELECT * FROM FILMS f LEFT JOIN RATING m " +
             "ON f.RATING_ID = m.RATING_ID LEFT JOIN (SELECT FILM_ID, COUNT(FILM_ID) AS LIKES FROM LIKE_LIST " +
             "GROUP BY FILM_ID) fl ON f.FILM_ID = fl.FILM_ID ORDER BY LIKES DESC LIMIT ?";
+    private static final String FIND_FILMS_BY_DIRECTOR_ID_ORDER_BY_RELEASE_DATE_QUERY = """
+            SELECT f.*, r.RATING_NAME AS mpa_name
+            FROM FILMS f
+            JOIN FILM_DIRECTORS fd ON f.FILM_ID = fd.FILM_ID
+            JOIN RATING r ON f.RATING_ID = r.RATING_ID
+            WHERE fd.DIRECTOR_ID = ?
+            ORDER BY f.RELEASE_DATE
+            """;
+    private static final String FIND_FILMS_BY_DIRECTOR_ID_ORDER_BY_LIKES_QUERY = """
+            SELECT f.*, r.RATING_NAME AS mpa_name, COUNT(l.FILM_ID) AS COUNT_LIKES
+            FROM FILMS f
+            JOIN FILM_DIRECTORS fd ON f.FILM_ID = fd.FILM_ID
+            JOIN RATING r ON f.RATING_ID = r.RATING_ID
+            JOIN LIKE_LIST l ON f.FILM_ID = l.FILM_ID
+            WHERE fd.DIRECTOR_ID = ?
+            GROUP BY l.FILM_ID
+            ORDER BY COUNT_LIKES DESC
+            """;
+    private static final String QUERY_EXISTS_RATING = "SELECT COUNT(*) FROM RATING WHERE RATING_ID = ?";
+    private static final String QUERY_EXISTS_GENRE = "SELECT COUNT(*) FROM GENRE WHERE GENRE_ID = ?";
 
     @Autowired
     public FilmRepository(JdbcTemplate jdbs, RowMapper<Film> mapper) {
@@ -109,7 +129,14 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
             return genres;
         });
     }
+    @Override
+    public Collection<Film> getByDirectorId(int directorId, String sortBy) {
+        String query = "year".equals(sortBy)
+                ? FIND_FILMS_BY_DIRECTOR_ID_ORDER_BY_RELEASE_DATE_QUERY
+                : FIND_FILMS_BY_DIRECTOR_ID_ORDER_BY_LIKES_QUERY;
 
+        return findMany(query, directorId);
+    }
     private Set<Genre> getGenresByFilm(long filmId) {
         return jdbc.query(GET_GENRES_BY_FILM, (ResultSet rs) -> {
             Set<Genre> genres = new HashSet<>();
@@ -120,6 +147,22 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
             }
             return genres;
         }, filmId);
+    }
+    public boolean ratingExists(Integer ratingId) {
+        Integer count = jdbc.queryForObject(
+                QUERY_EXISTS_RATING,
+                Integer.class,
+                ratingId
+        );
+        return count != null && count > 0;
+    }
+    public boolean genreTry(Integer genreId) {
+        Integer count = jdbc.queryForObject(
+                "SELECT COUNT(*) FROM GENRE WHERE GENRE_ID = ?",
+                Integer.class,
+                genreId
+        );
+        return count != null && count > 0;
     }
 
 
