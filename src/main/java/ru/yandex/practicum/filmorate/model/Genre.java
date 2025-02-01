@@ -1,17 +1,15 @@
 package ru.yandex.practicum.filmorate.model;
 
-import jakarta.validation.constraints.NotNull;
-import lombok.*;
-
-import java.io.Serializable;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder(toBuilder = true)
-@EqualsAndHashCode(of = "id")
-public class Genre implements Serializable {
-    @NotNull
+public class Genre {
     private Integer id;
     private String name;
 }

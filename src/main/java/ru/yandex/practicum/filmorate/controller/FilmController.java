@@ -8,7 +8,6 @@ import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
-import java.security.PublicKey;
 import java.util.Collection;
 
 @RestController
@@ -65,6 +64,4 @@ public class FilmController {
                                                @RequestParam(defaultValue = "year") String sortBy) {
         return filmService.getFilmsByDirector(directorId, sortBy);
     }
-
-
 }

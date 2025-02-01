@@ -1,10 +1,10 @@
 package ru.yandex.practicum.filmorate.storage;
 
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Genre;
 
-import javax.swing.text.html.Option;
 import java.util.Collection;
-import java.util.Optional;
+import java.util.Set;
 
 public interface FilmStorage {
     Film createFilm(Film film);
@@ -13,7 +13,6 @@ public interface FilmStorage {
 
     Collection<Film> getFilms();
 
-
     Film getFilm(Integer id);
 
     void deleteFilm(Integer id);
@@ -21,4 +20,6 @@ public interface FilmStorage {
     Collection<Film> getTopFilms(Integer count);
 
     Collection<Film> getByDirectorId(int directorId, String sortBy);
+    boolean ratingExists(Integer id);
+    boolean genreTry(Integer id);
 }
