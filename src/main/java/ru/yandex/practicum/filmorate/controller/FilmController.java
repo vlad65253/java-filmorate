@@ -53,12 +53,13 @@ public class FilmController {
     public void deleteLike(@PathVariable int id, @PathVariable int userId) {
         filmService.delLikeFilm(id, userId);
     }
-
+    /*add-remove-endpoint*/
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteFilm(@PathVariable int id) {
         filmService.deleteFilm(id);
     }
+
     @GetMapping("/director/{directorId}")
     public Collection<Film> getFilmsByDirector(@PathVariable int directorId,
                                                @RequestParam(defaultValue = "year") String sortBy) {
