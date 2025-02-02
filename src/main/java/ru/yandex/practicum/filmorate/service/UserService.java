@@ -49,14 +49,14 @@ public class UserService {
         getUserById(userId);
         getUserById(friendId);
         friendshipRepository.addFriend(userId, friendId);
-        log.info("User {} added friend {}", userId, friendId);
+        log.info("Пользователь {} добавил в друзья {}", userId, friendId);
     }
 
     public void deleteFriend(Integer userId, Integer friendId) {
         getUserById(userId);
         getUserById(friendId);
         friendshipRepository.deleteFriend(userId, friendId);
-        log.info("User {} deleted friend {}", userId, friendId);
+        log.info("Пользователь {} удалил из друзей {}", userId, friendId);
     }
 
     public Collection<User> getFriends(Integer userId) {
@@ -69,6 +69,4 @@ public class UserService {
         getUserById(secondId);
         return friendshipRepository.getCommonFriends(firstId, secondId);
     }
-
-
 }
