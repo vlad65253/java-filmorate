@@ -58,7 +58,7 @@ public class UserController {
     public void deleteFriend(@PathVariable("id") Integer id, @PathVariable("friendId") Integer friendId) {
         userService.deleteFriend(id, friendId);
     }
-    /*add-remove-endpoint*/
+
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/{id}")
     public void delete(@PathVariable Integer id) {
