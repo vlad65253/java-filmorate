@@ -20,6 +20,8 @@ public interface FilmStorage {
     Collection<Film> getTopFilms(Integer count);
 
     Collection<Film> getByDirectorId(int directorId, String sortBy);
+
     boolean ratingExists(Integer id);
+
     boolean genreTry(Integer id);
 }

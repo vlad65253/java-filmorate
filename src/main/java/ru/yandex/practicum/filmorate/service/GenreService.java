@@ -27,7 +27,7 @@ public class GenreService {
         genreRepository.addGenres(filmId, genresId);
     }
 
-    public void deleteGenere(Integer filmId) {
+    public void deleteGenre(Integer filmId) {
         genreRepository.delGenres(filmId);
     }
 }

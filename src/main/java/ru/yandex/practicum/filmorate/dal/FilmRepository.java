@@ -128,6 +128,7 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
             return genres;
         });
     }
+
     @Override
     public Collection<Film> getByDirectorId(int directorId, String sortBy) {
         String query = "year".equals(sortBy)
@@ -136,6 +137,7 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
 
         return findMany(query, directorId);
     }
+
     private Set<Genre> getGenresByFilm(long filmId) {
         return jdbc.query(GET_GENRES_BY_FILM, (ResultSet rs) -> {
             Set<Genre> genres = new HashSet<>();
@@ -147,22 +149,22 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
             return genres;
         }, filmId);
     }
+
     public boolean ratingExists(Integer ratingId) {
         Integer count = jdbc.queryForObject(
                 QUERY_EXISTS_RATING,
                 Integer.class,
                 ratingId
         );
-        return count != null && count > 0;
+        return count > 0;
     }
+
     public boolean genreTry(Integer genreId) {
         Integer count = jdbc.queryForObject(
                 "SELECT COUNT(*) FROM GENRE WHERE GENRE_ID = ?",
                 Integer.class,
                 genreId
         );
-        return count != null && count > 0;
+        return count > 0;
     }
-
-
 }
