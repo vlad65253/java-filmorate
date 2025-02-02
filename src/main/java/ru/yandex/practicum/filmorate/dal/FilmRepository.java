@@ -49,6 +49,16 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
             ORDER BY COUNT_LIKES DESC
             """;
     private static final String QUERY_EXISTS_RATING = "SELECT COUNT(*) FROM RATING WHERE RATING_ID = ?";
+    private static final String GET_COMMON_FILMS_QUERY = """
+    SELECT f.*, r.RATING_NAME as mpa_name, COUNT(l.USER_ID) as LIKES
+    FROM FILMS f
+    JOIN RATING r ON f.RATING_ID = r.RATING_ID
+    JOIN LIKE_LIST l ON f.FILM_ID = l.FILM_ID
+    JOIN LIKE_LIST l1 ON f.FILM_ID = l1.FILM_ID
+    WHERE l.USER_ID = ? AND l1.USER_ID = ?
+    GROUP BY f.FILM_ID, r.RATING_NAME, f.FILM_NAME, f.DESCRIPTION, f.RELEASE_DATE, f.DURATION, f.RATING_ID
+    ORDER BY LIKES DESC
+    """;
 
     @Autowired
     public FilmRepository(JdbcTemplate jdbs, RowMapper<Film> mapper) {
@@ -166,5 +176,9 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
                 genreId
         );
         return count > 0;
+    }
+
+    public Collection<Film> getCommonFilms(int userId, int friendId) {
+        return findMany(GET_COMMON_FILMS_QUERY, userId, friendId);
     }
 }
