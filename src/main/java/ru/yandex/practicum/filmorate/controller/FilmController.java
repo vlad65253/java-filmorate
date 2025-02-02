@@ -54,7 +54,6 @@ public class FilmController {
         filmService.delLikeFilm(id, userId);
     }
 
-    /*add-remove-endpoint*/
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteFilm(@PathVariable int id) {
