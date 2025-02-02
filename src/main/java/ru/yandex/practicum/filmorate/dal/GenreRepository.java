@@ -58,6 +58,7 @@ public class GenreRepository extends BaseRepository<Genre> {
     public void delGenres(long id) {
         delete(DEL_GENRE_QUERY, id);
     }
+
     public Map<Integer, Set<Genre>> getAllByFilms() {
         List<Map<String, Object>> rows = jdbc.queryForList(FIND_ALL_BY_FILMS);
         return rows.stream().collect(groupingBy(
