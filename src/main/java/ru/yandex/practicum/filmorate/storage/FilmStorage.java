@@ -24,4 +24,6 @@ public interface FilmStorage {
     boolean ratingExists(Integer id);
 
     boolean genreTry(Integer id);
+
+    public Collection<Film> getCommonFilms(int userId, int friendId);
 }

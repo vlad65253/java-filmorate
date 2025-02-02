@@ -165,4 +165,13 @@ public class FilmService {
 
         return films;
     }
+
+    public Collection<Film> getCommonFilms(int userId, int friendId) {
+        Collection<Film> commonFilms = filmStorage.getCommonFilms(userId, friendId);
+        if (commonFilms.isEmpty()) {
+            throw new NotFoundException("Общие фильмы для пользователей ID: " + userId +
+                    " и ID: " + friendId + " не найдены");
+        }
+        return commonFilms;
+    }
 }
