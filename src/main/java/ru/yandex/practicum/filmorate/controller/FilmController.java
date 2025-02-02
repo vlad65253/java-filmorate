@@ -53,6 +53,7 @@ public class FilmController {
     public void deleteLike(@PathVariable int id, @PathVariable int userId) {
         filmService.delLikeFilm(id, userId);
     }
+
     /*add-remove-endpoint*/
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
