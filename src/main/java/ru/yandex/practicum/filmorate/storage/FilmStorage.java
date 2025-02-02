@@ -1,10 +1,8 @@
 package ru.yandex.practicum.filmorate.storage;
 
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.Genre;
 
 import java.util.Collection;
-import java.util.Set;
 
 public interface FilmStorage {
     Film createFilm(Film film);
@@ -25,5 +23,5 @@ public interface FilmStorage {
 
     boolean genreTry(Integer id);
 
-    public Collection<Film> getCommonFilms(int userId, int friendId);
+    Collection<Film> getCommonFilms(int userId, int friendId);
 }

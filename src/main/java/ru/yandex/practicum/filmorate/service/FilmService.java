@@ -140,7 +140,7 @@ public class FilmService {
     }
 
     public Collection<Film> getFilmsByDirector(int directorId, String sortBy) {
-        if(directorRepository.getDirectorById(directorId) == null){
+        if (directorRepository.getDirectorById(directorId) == null) {
             throw new NotFoundException("Режиссер с ID " + directorId + " не найден");
         }
         // Получаем фильмы, отсортированные по году или лайкам
@@ -168,9 +168,18 @@ public class FilmService {
 
     public Collection<Film> getCommonFilms(int userId, int friendId) {
         Collection<Film> commonFilms = filmStorage.getCommonFilms(userId, friendId);
-        if (commonFilms.isEmpty()) {
-            throw new NotFoundException("Общие фильмы для пользователей ID: " + userId +
-                    " и ID: " + friendId + " не найдены");
+        if (!commonFilms.isEmpty()) {
+            // Загружаем все жанры и режиссёров для этих фильмов
+            Map<Integer, Set<Genre>> genresByFilmId = genreRepository.getAllByFilms();
+            Map<Integer, List<Director>> directorsByFilmId = directorRepository.findAllByFilms();
+
+            // Добавляем жанры и режиссёров в каждый фильм
+            commonFilms.forEach(film -> {
+                film.setGenres(genresByFilmId.getOrDefault(film.getId(), Set.of()));  // Устанавливаем жанры
+                film.setDirectors(directorsByFilmId.getOrDefault(film.getId(), List.of()));  // Устанавливаем режиссёров
+                System.out.println(film.getId());
+
+            });
         }
         return commonFilms;
     }

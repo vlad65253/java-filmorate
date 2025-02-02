@@ -43,7 +43,7 @@ class FilmRepositoryTest {
                 .mpa(new Rating(1, "G"))
                 .genres(Set.of(new Genre(1, "Комедия")))
                 .likedList(Set.of(15, 2, 7, 3))
-                .director(new Director(2, "name"))
+                .directors(Set.of(new Director(2, "name")))
                 .build();
 
         film2 = Film.builder()
@@ -54,7 +54,7 @@ class FilmRepositoryTest {
                 .mpa(new Rating(2, "PG"))
                 .genres(Set.of(new Genre(2, "Драма")))
                 .likedList(Set.of(1, 2, 7, 3))
-                .director(new Director(2, "name"))
+                .directors(Set.of(new Director(2, "name")))
                 .build();
 
         film3 = Film.builder()
@@ -65,7 +65,7 @@ class FilmRepositoryTest {
                 .mpa(new Rating(3, "PG-13"))
                 .genres(Set.of(new Genre(6, "Боевик")))
                 .likedList(Set.of(1, 15, 2, 7, 3))
-                .director(new Director(2, "name"))
+                .directors(Set.of(new Director(2, "name")))
                 .build();
     }
 
@@ -81,7 +81,7 @@ class FilmRepositoryTest {
     void getFilmById() {
         filmRepository.createFilm(film1);
         Film film = filmRepository.getFilm(film1.getId());
-        assertThat(film).hasFieldOrPropertyWithValue("id", 23);
+        assertThat(film).hasFieldOrPropertyWithValue("id", 13);
     }
 
     @Test
@@ -99,7 +99,7 @@ class FilmRepositoryTest {
         filmRepository.createFilm(film2);
         filmRepository.createFilm(film3);
 
-        assertThat(film2).hasFieldOrPropertyWithValue("id", 12);
+        assertThat(film2).hasFieldOrPropertyWithValue("id", 2);
     }
 
     @Test
@@ -116,7 +116,7 @@ class FilmRepositoryTest {
                 .mpa(new Rating(2, "PG"))
                 .genres(Set.of(new Genre(1, "Комедия")))
                 .likedList(Set.of())
-                .director(new Director(2, "name"))
+                .directors(Set.of(new Director(2, "name")))
                 .build();
 
         Film updated = filmRepository.updateFilm(updatedFilm);
