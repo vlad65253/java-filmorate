@@ -74,8 +74,8 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
             "WHERE LOWER(d.DIRECTOR_NAME) like LOWER(?)) and LOWER(f.FILM_NAME) like LOWER(?)";
 
     @Autowired
-    public FilmRepository(JdbcTemplate jdbs, RowMapper<Film> mapper) {
-        super(jdbs, mapper);
+    public FilmRepository(JdbcTemplate jdbc, RowMapper<Film> mapper) {
+        super(jdbc, mapper);
     }
 
     @Override
