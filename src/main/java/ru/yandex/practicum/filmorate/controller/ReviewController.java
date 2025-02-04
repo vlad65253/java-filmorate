@@ -15,19 +15,12 @@ import java.util.List;
 public class ReviewController {
     private final ReviewService reviewService;
 
-    /**
-     * POST /reviews
-     * При создании рейтинг отзыва всегда равен 0.
-     */
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping
     public Review addReview(@Valid @RequestBody Review review) {
         return reviewService.addReview(review);
     }
 
-    /**
-     * PUT /reviews
-     */
     @PutMapping
     public Review updateReview(@Valid @RequestBody Review review) {
         return reviewService.updateReview(review);
@@ -39,20 +32,11 @@ public class ReviewController {
         reviewService.deleteReview(id);
     }
 
-    /**
-     * GET /reviews/{id}
-     */
     @GetMapping("/{id}")
     public Review getReview(@PathVariable int id) {
         return reviewService.getReview(id);
     }
 
-    /**
-     * GET /reviews?filmId={filmId}&count={count}
-     * Получение списка отзывов.
-     * Если filmId не указан, возвращаются все отзывы (с лимитом по умолчанию 10).
-     * Отзывы сортируются по рейтингу полезности.
-     */
     @GetMapping
     public List<Review> getReviews(@RequestParam(required = false) Integer filmId,
                                    @RequestParam(required = false) Integer count) {

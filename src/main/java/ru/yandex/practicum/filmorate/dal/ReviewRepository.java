@@ -54,7 +54,7 @@ public class ReviewRepository extends BaseRepository<Review> implements ReviewSt
         if (!updated) {
             throw new NotFoundException("Отзыв с id " + review.getReviewId() + " не найден");
         }
-        return review;
+        return getReview(review.getReviewId());
     }
 
     @Override
