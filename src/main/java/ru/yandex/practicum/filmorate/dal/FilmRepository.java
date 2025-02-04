@@ -61,12 +61,12 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
             GROUP BY f.FILM_ID, r.RATING_NAME, f.FILM_NAME, f.DESCRIPTION, f.RELEASE_DATE, f.DURATION, f.RATING_ID
             ORDER BY LIKES DESC
             """;
-    private final JdbcTemplate jdbс;
+    private final JdbcTemplate jdbc;
 
     @Autowired
-    public FilmRepository(JdbcTemplate jdbс, RowMapper<Film> mapper) {
-        super(jdbс, mapper);
-        this.jdbс = jdbс;
+    public FilmRepository(JdbcTemplate jdbc, RowMapper<Film> mapper) {
+        super(jdbc, mapper);
+        this.jdbc = jdbc;
     }
 
     @Override
@@ -204,7 +204,23 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
         Object[] params = filmIds.toArray();
 
         return jdbc.query(sql, params, new FilmRowMapper());
-
     }
+
+    public Collection<Film> getTopFilmsByGenreAndYear(int limit, Integer genreId, Integer year) {
+        String sql = """
+    SELECT f.*, r.RATING_NAME AS mpa_name, COUNT(l.FILM_ID) AS COUNT_LIKES
+    FROM FILMS f
+    JOIN RATING r ON f.RATING_ID = r.RATING_ID
+    JOIN LIKE_LIST l ON f.FILM_ID = l.FILM_ID
+    JOIN FILM_GENRES fg ON f.FILM_ID = fg.FILM_ID
+    WHERE fg.GENRE_ID = ? AND EXTRACT(YEAR FROM f.RELEASE_DATE) = ?
+    GROUP BY f.FILM_ID, r.RATING_NAME
+    ORDER BY COUNT_LIKES DESC
+    LIMIT ?
+    """;
+        return findMany(sql, genreId, year, limit);
+    }
+
+
 }
 
