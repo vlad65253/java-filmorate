@@ -73,10 +73,11 @@ public class FilmController {
                                            @RequestParam int friendId) {
         return filmService.getCommonFilms(userId, friendId);
     }
+
     @GetMapping("/search")
     public Collection<Film> getSearchFilms(@RequestParam String query,
-                                           @RequestParam String by){
-        if(FilmFilters.from(by) == null){
+                                           @RequestParam String by) {
+        if (FilmFilters.from(by) == null) {
             throw new ValidationException("Указано неверное значение критерия поиска (by)");
         }
         return filmService.getSearchFilms(query, by);
