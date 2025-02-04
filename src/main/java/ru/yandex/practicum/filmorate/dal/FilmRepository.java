@@ -4,12 +4,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
+import ru.yandex.practicum.filmorate.mapper.FilmRowMapper;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
 import java.sql.ResultSet;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Repository
 public class FilmRepository extends BaseRepository<Film> implements FilmStorage {
@@ -50,19 +52,21 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
             """;
     private static final String QUERY_EXISTS_RATING = "SELECT COUNT(*) FROM RATING WHERE RATING_ID = ?";
     private static final String GET_COMMON_FILMS_QUERY = """
-    SELECT f.*, r.RATING_NAME as mpa_name, COUNT(l.USER_ID) as LIKES
-    FROM FILMS f
-    JOIN RATING r ON f.RATING_ID = r.RATING_ID
-    JOIN LIKE_LIST l ON f.FILM_ID = l.FILM_ID
-    JOIN LIKE_LIST l1 ON f.FILM_ID = l1.FILM_ID
-    WHERE l.USER_ID = ? AND l1.USER_ID = ?
-    GROUP BY f.FILM_ID, r.RATING_NAME, f.FILM_NAME, f.DESCRIPTION, f.RELEASE_DATE, f.DURATION, f.RATING_ID
-    ORDER BY LIKES DESC
-    """;
+            SELECT f.*, r.RATING_NAME as mpa_name, COUNT(l.USER_ID) as LIKES
+            FROM FILMS f
+            JOIN RATING r ON f.RATING_ID = r.RATING_ID
+            JOIN LIKE_LIST l ON f.FILM_ID = l.FILM_ID
+            JOIN LIKE_LIST l1 ON f.FILM_ID = l1.FILM_ID
+            WHERE l.USER_ID = ? AND l1.USER_ID = ?
+            GROUP BY f.FILM_ID, r.RATING_NAME, f.FILM_NAME, f.DESCRIPTION, f.RELEASE_DATE, f.DURATION, f.RATING_ID
+            ORDER BY LIKES DESC
+            """;
+    private final JdbcTemplate jdbс;
 
     @Autowired
-    public FilmRepository(JdbcTemplate jdbs, RowMapper<Film> mapper) {
-        super(jdbs, mapper);
+    public FilmRepository(JdbcTemplate jdbс, RowMapper<Film> mapper) {
+        super(jdbс, mapper);
+        this.jdbс = jdbс;
     }
 
     @Override
@@ -181,4 +185,26 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
     public Collection<Film> getCommonFilms(int userId, int friendId) {
         return findMany(GET_COMMON_FILMS_QUERY, userId, friendId);
     }
+
+    public Set<Integer> getLikedFilmsByUser(Integer userId) {
+        String sql = "SELECT FILM_ID FROM LIKE_LIST WHERE USER_ID = ?";
+        return new HashSet<>(jdbc.queryForList(sql, Integer.class, userId));
+    }
+
+    public Collection<Film> findFilmsByIds(Set<Integer> filmIds) {
+        if (filmIds.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        String placeholders = filmIds.stream().map(id -> "?").collect(Collectors.joining(","));
+        String sql = String.format("SELECT FILMS.*, RATING.RATING_NAME FROM FILMS " +
+                "JOIN RATING ON FILMS.RATING_ID = RATING.RATING_ID " +
+                "WHERE FILM_ID IN (%s)", placeholders);
+
+        Object[] params = filmIds.toArray();
+
+        return jdbc.query(sql, params, new FilmRowMapper());
+
+    }
 }
+

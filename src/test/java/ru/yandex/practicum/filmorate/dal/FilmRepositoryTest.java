@@ -8,13 +8,15 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
 import org.springframework.context.annotation.Import;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
-import ru.yandex.practicum.filmorate.mapper.*;
+import ru.yandex.practicum.filmorate.mapper.FilmRowMapper;
 import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Rating;
 
 import java.time.LocalDate;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -27,10 +29,10 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
         FilmRowMapper.class,
         LikesRepository.class})
 class FilmRepositoryTest {
-    private final FilmRepository filmRepository;
     private static Film film1;
     private static Film film2;
     private static Film film3;
+    private final FilmRepository filmRepository;
     private final LikesRepository likesRepository;
 
     @BeforeAll
@@ -81,7 +83,7 @@ class FilmRepositoryTest {
     void getFilmById() {
         filmRepository.createFilm(film1);
         Film film = filmRepository.getFilm(film1.getId());
-        assertThat(film).hasFieldOrPropertyWithValue("id", 13);
+        assertThat(film).hasFieldOrPropertyWithValue("id", 15);
     }
 
     @Test
@@ -131,5 +133,24 @@ class FilmRepositoryTest {
 
         filmRepository.deleteFilm(1);
         assertThrows(NotFoundException.class, () -> filmRepository.getFilm(1));
+    }
+
+    @Test
+    void getLikedFilmsByUser() {
+        Set<Integer> likedFilms = filmRepository.getLikedFilmsByUser(1);
+        assertThat(likedFilms).isNotNull();
+    }
+
+    @Test
+    void findFilmsByIds() {
+        filmRepository.createFilm(film1);
+        filmRepository.createFilm(film2);
+
+        Set<Integer> filmIds = new HashSet<>();
+        filmIds.add(film1.getId());
+        filmIds.add(film2.getId());
+
+        Collection<Film> films = filmRepository.findFilmsByIds(filmIds);
+        assertThat(films).isNotEmpty();
     }
 }
