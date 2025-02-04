@@ -183,10 +183,11 @@ public class FilmService {
         }
         return commonFilms;
     }
+
     //доделать
     public Collection<Film> getSearchFilms(String query, String by) {
         Collection<Film> searchingFilms = filmStorage.getSearchFilms(query, by);
-        if(!searchingFilms.isEmpty()){
+        if (!searchingFilms.isEmpty()) {
             Map<Integer, Set<Genre>> genresByFilmId = genreRepository.getAllByFilms();
             Map<Integer, List<Director>> directorsByFilmId = directorRepository.findAllByFilms();
 
