@@ -1,22 +1,19 @@
 package ru.yandex.practicum.filmorate.model;
 
-import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder(toBuilder = true)
 public class Review {
-    private Integer reviews_id;
-    @NotBlank
-    private String content;
-    @NotBlank
-    private Boolean isPositive;
-    @NotBlank
+    private Integer reviewId;
     private Integer userId;
-    @NotBlank
     private Integer filmId;
-    private Integer useful;
+    private String content;     // содержание отзыва
+    private Boolean isPositive; // тип отзыва: позитивный (true) или негативный (false)
+    private Integer useful;     // рейтинг полезности (изначально 0), считаем по оценкам ревью
 }
