@@ -2,6 +2,8 @@ package ru.yandex.practicum.filmorate.dal;
 
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+import ru.yandex.practicum.filmorate.dal.status.EventOperation;
+import ru.yandex.practicum.filmorate.dal.status.EventType;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.mapper.ReviewRowMapper;
 import ru.yandex.practicum.filmorate.model.Review;
@@ -26,6 +28,8 @@ public class ReviewRepository extends BaseRepository<Review> implements ReviewSt
             "SELECT * FROM REVIEWS ORDER BY USEFUL DESC LIMIT ?";
     private static final String SQL_UPDATE_REVIEW_USEFUL =
             "UPDATE REVIEWS SET USEFUL = USEFUL + ? WHERE REVIEW_ID = ?";
+    private static final String SQL_EVENT =
+            "INSERT INTO EVENTS(USER_ID, EVENT_TYPE, OPERATION, ENTITY_ID) VALUES (?, ?, ?, ?)";
 
     public ReviewRepository(JdbcTemplate jdbc, ReviewRowMapper reviewRowMapper) {
         super(jdbc, reviewRowMapper);
@@ -42,6 +46,7 @@ public class ReviewRepository extends BaseRepository<Review> implements ReviewSt
                 review.getIsPositive(),
                 useful);
         review.setReviewId(id);
+        update(SQL_EVENT, review.getUserId(), EventType.REVIEW.toString(), EventOperation.ADD.toString(), review.getReviewId());
         return review;
     }
 
@@ -54,15 +59,17 @@ public class ReviewRepository extends BaseRepository<Review> implements ReviewSt
         if (!updated) {
             throw new NotFoundException("Отзыв с id " + review.getReviewId() + " не найден");
         }
+        update(SQL_EVENT, review.getUserId(), EventType.REVIEW.toString(), EventOperation.UPDATE.toString(), review.getReviewId());
         return getReview(review.getReviewId());
     }
 
     @Override
-    public void deleteReview(int reviewId) {
+    public void deleteReview(int userId, int reviewId) {
         boolean deleted = delete(SQL_DELETE_REVIEW, reviewId);
         if (!deleted) {
             throw new NotFoundException("Отзыв с id " + reviewId + " не найден");
         }
+        update(SQL_EVENT, userId, EventType.REVIEW.toString(), EventOperation.REMOVE.toString(), reviewId);
     }
 
     @Override

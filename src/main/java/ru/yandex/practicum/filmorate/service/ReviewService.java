@@ -28,7 +28,11 @@ public class ReviewService {
     }
 
     public void deleteReview(int reviewId) {
-        reviewStorage.deleteReview(reviewId);
+        if (reviewStorage.getReview(reviewId) == null) {
+            throw new NotFoundException("reviewId не найден.");
+        }
+        int userId = reviewStorage.getReview(reviewId).getUserId();
+        reviewStorage.deleteReview(userId, reviewId);
     }
 
     public Review getReview(int reviewId) {
