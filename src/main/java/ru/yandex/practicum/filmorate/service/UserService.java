@@ -24,10 +24,6 @@ public class UserService {
     private final UserRepository userRepository;
     private final FilmRepository filmRepository;
 
-//    public UserService(@Autowired @Qualifier("userRepository") UserStorage userStorage, @Autowired FriendshipRepository friendshipRepository) {
-//        this.userStorage = userStorage;
-//        this.friendshipRepository = friendshipRepository;
-//    }
 
     public User createUser(User user) {
         if (user.getName() == null || user.getName().isBlank()) {

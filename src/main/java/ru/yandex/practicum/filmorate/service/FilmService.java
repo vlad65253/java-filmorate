@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dal.DirectorRepository;
+import ru.yandex.practicum.filmorate.dal.FilmRepository;
 import ru.yandex.practicum.filmorate.dal.GenreRepository;
 import ru.yandex.practicum.filmorate.dal.LikesRepository;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
@@ -27,17 +28,20 @@ public class FilmService {
     private final GenreRepository genreRepository;
     private final LikesRepository likesRepository;
     private final DirectorRepository directorRepository;
+    private final FilmRepository filmRepository;
 
     public FilmService(@Autowired @Qualifier("filmRepository") FilmStorage filmStorage,
                        @Autowired @Qualifier("userRepository") UserStorage userStorage,
                        @Autowired GenreRepository genreRepository,
                        @Autowired LikesRepository likesRepository,
-                       @Autowired DirectorRepository directorRepository) {
+                       @Autowired DirectorRepository directorRepository,
+                       @Autowired FilmRepository filmRepository) {
         this.filmStorage = filmStorage;
         this.genreRepository = genreRepository;
         this.likesRepository = likesRepository;
         this.userStorage = userStorage;
         this.directorRepository = directorRepository;
+        this.filmRepository = filmRepository;
     }
 
 
@@ -185,5 +189,9 @@ public class FilmService {
             });
         }
         return commonFilms;
+    }
+
+    public Collection<Film> getTopFilmsByGenreAndYear(int limit, Integer genreId, Integer year) {
+        return filmRepository.getTopFilmsByGenreAndYear(limit, genreId, year);
     }
 }

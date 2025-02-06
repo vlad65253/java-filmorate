@@ -4,14 +4,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
-import ru.yandex.practicum.filmorate.mapper.FilmRowMapper;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
 import java.sql.ResultSet;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Repository
 public class FilmRepository extends BaseRepository<Film> implements FilmStorage {
@@ -60,6 +58,23 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
             WHERE l.USER_ID = ? AND l1.USER_ID = ?
             GROUP BY f.FILM_ID, r.RATING_NAME, f.FILM_NAME, f.DESCRIPTION, f.RELEASE_DATE, f.DURATION, f.RATING_ID
             ORDER BY LIKES DESC
+            """;
+    private static final String FIND_FILMS_BY_IDS_SQL =
+            "SELECT FILMS.*, RATING.RATING_NAME FROM FILMS " +
+                    "JOIN RATING ON FILMS.RATING_ID = RATING.RATING_ID " +
+                    "WHERE FILM_ID IN (%s)";
+    private static final String GET_TOP_FILMS_SQL = """
+                SELECT f.*, r.RATING_NAME AS mpa_name, COUNT(DISTINCT l.USER_ID) AS COUNT_LIKES
+                FROM FILMS f
+                JOIN RATING r ON f.RATING_ID = r.RATING_ID
+                LEFT JOIN LIKE_LIST l ON f.FILM_ID = l.FILM_ID
+                LEFT JOIN FILMS_GENRE fg ON f.FILM_ID = fg.FILM_ID
+                WHERE 
+                    (? IS NULL OR fg.GENRE_ID = ?) AND 
+                    (? IS NULL OR EXTRACT(YEAR FROM f.RELEASE_DATE) = ?)
+                GROUP BY f.FILM_ID, r.RATING_NAME
+                ORDER BY COUNT_LIKES DESC
+                LIMIT ?
             """;
     private final JdbcTemplate jdbc;
 
@@ -196,29 +211,14 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
             return Collections.emptyList();
         }
 
-        String placeholders = filmIds.stream().map(id -> "?").collect(Collectors.joining(","));
-        String sql = String.format("SELECT FILMS.*, RATING.RATING_NAME FROM FILMS " +
-                "JOIN RATING ON FILMS.RATING_ID = RATING.RATING_ID " +
-                "WHERE FILM_ID IN (%s)", placeholders);
+        String placeholders = String.join(",", Collections.nCopies(filmIds.size(), "?"));
+        String sql = String.format(FIND_FILMS_BY_IDS_SQL, placeholders);
 
-        Object[] params = filmIds.toArray();
-
-        return jdbc.query(sql, params, new FilmRowMapper());
+        return findMany(sql, filmIds.toArray());
     }
 
     public Collection<Film> getTopFilmsByGenreAndYear(int limit, Integer genreId, Integer year) {
-        String sql = """
-    SELECT f.*, r.RATING_NAME AS mpa_name, COUNT(l.FILM_ID) AS COUNT_LIKES
-    FROM FILMS f
-    JOIN RATING r ON f.RATING_ID = r.RATING_ID
-    JOIN LIKE_LIST l ON f.FILM_ID = l.FILM_ID
-    JOIN FILM_GENRES fg ON f.FILM_ID = fg.FILM_ID
-    WHERE fg.GENRE_ID = ? AND EXTRACT(YEAR FROM f.RELEASE_DATE) = ?
-    GROUP BY f.FILM_ID, r.RATING_NAME
-    ORDER BY COUNT_LIKES DESC
-    LIMIT ?
-    """;
-        return findMany(sql, genreId, year, limit);
+        return findMany(GET_TOP_FILMS_SQL, genreId, genreId, year, year, limit);
     }
 
 
