@@ -3,16 +3,16 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.dal.FilmRepository;
 import ru.yandex.practicum.filmorate.dal.FriendshipRepository;
+import ru.yandex.practicum.filmorate.dal.UserRepository;
 import ru.yandex.practicum.filmorate.model.Event;
+import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.EventStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -21,6 +21,8 @@ import java.util.stream.Collectors;
 public class UserService {
     private final UserStorage userStorage;
     private final FriendshipRepository friendshipRepository;
+    private final UserRepository userRepository;
+    private final FilmRepository filmRepository;
     private final EventStorage eventStorage;
 
     public User createUser(User user) {
@@ -72,9 +74,30 @@ public class UserService {
         return friendshipRepository.getCommonFriends(firstId, secondId);
     }
 
+    public Collection<Film> getRecommendations(Integer userId) {
+        Set<Integer> userLikedFilms = filmRepository.getLikedFilmsByUser(userId);
+
+        Map<Integer, Long> commonLikesCount = userRepository.findUsersWithCommonLikes(userLikedFilms, userId);
+
+        Integer similarUserId = commonLikesCount.entrySet().stream()
+                .max(Map.Entry.comparingByValue())
+                .map(Map.Entry::getKey)
+                .orElse(null);
+
+        if (similarUserId == null) {
+            return Collections.emptyList();
+        }
+
+        Set<Integer> similarUserLikedFilms = filmRepository.getLikedFilmsByUser(similarUserId);
+        similarUserLikedFilms.removeAll(userLikedFilms);
+
+        return filmRepository.findFilmsByIds(similarUserLikedFilms);
+    }
+
     public Set<Event> getFeedUserById(Integer id) {
         return eventStorage.getFeedUserById(id).stream()
                 .sorted(Comparator.comparing(Event::getUserId))
                 .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 }
+

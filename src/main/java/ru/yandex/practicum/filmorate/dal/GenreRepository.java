@@ -63,7 +63,7 @@ public class GenreRepository extends BaseRepository<Genre> {
     public Map<Integer, Set<Genre>> getAllByFilms() {
         List<Map<String, Object>> rows = jdbc.queryForList(FIND_ALL_BY_FILMS);
         return rows.stream().collect(groupingBy(row -> ((Number) row.get("FILM_ID"))
-                        .intValue(),
+                                .intValue(),
                         mapping(row -> Genre.builder()
                                 .id((Integer) row.get("GENRE_ID"))
                                 .name((String) row.get("name"))

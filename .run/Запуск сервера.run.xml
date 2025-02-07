@@ -1,9 +1,9 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Запуск сервера" type="Application" factoryName="Application">
-    <option name="MAIN_CLASS_NAME" value="ru.yandex.practicum.filmorate.FilmorateApplication" />
-    <module name="filmorate" />
-    <method v="2">
-      <option name="Make" enabled="true" />
-    </method>
-  </configuration>
+    <configuration default="false" name="Запуск сервера" type="Application" factoryName="Application">
+        <option name="MAIN_CLASS_NAME" value="ru.yandex.practicum.filmorate.FilmorateApplication"/>
+        <module name="filmorate"/>
+        <method v="2">
+            <option name="Make" enabled="true"/>
+        </method>
+    </configuration>
 </component>
