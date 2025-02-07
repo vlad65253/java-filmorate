@@ -1,6 +1,5 @@
 package ru.yandex.practicum.filmorate.service;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -207,9 +206,10 @@ public class FilmService {
         }
         return searchingFilms;
     }
-        public Collection<Film> getTopFilmsByGenreAndYear(int limit, Integer genreId, Integer year){
-            return filmRepository.getTopFilmsByGenreAndYear(limit, genreId, year);
 
-        }
+    public Collection<Film> getTopFilmsByGenreAndYear(int limit, Integer genreId, Integer year) {
+        return filmRepository.getTopFilmsByGenreAndYear(limit, genreId, year);
+
     }
+}
 
