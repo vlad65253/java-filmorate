@@ -160,7 +160,7 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
     }
 
     private Map<Integer, Set<Genre>> getAllGenres() {
-        Map<Integer, Set<Genre>> genres = new HashMap<>();
+        Map<Integer, Set<Genre>> genres = new LinkedHashMap<>();
         return jdbc.query(GET_ALL_GENERES_FILMS, (ResultSet rs) -> {
             while (rs.next()) {
                 Integer filmId = rs.getInt("FILM_ID");
@@ -183,7 +183,7 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
 
     private Set<Genre> getGenresByFilm(long filmId) {
         return jdbc.query(GET_GENRES_BY_FILM, (ResultSet rs) -> {
-            Set<Genre> genres = new HashSet<>();
+            Set<Genre> genres = new LinkedHashSet<>();
             while (rs.next()) {
                 int genreId = rs.getInt("GENRE_ID");
                 String genreName = rs.getString("GENRE_NAME");
