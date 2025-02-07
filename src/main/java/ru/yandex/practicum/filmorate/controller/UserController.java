@@ -68,7 +68,6 @@ public class UserController {
         userService.deleteUser(id);
     }
 
-
     /*GET /users/{id}/feed*/
     @GetMapping("/{id}/feed")
     public Set<Event> getFeedUserById(@PathVariable Integer id) {
