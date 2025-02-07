@@ -1,8 +1,8 @@
 package ru.yandex.practicum.filmorate.service;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
+
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dal.DirectorRepository;
 import ru.yandex.practicum.filmorate.dal.FilmRepository;
@@ -22,6 +22,7 @@ import java.util.Set;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class FilmService {
     private final FilmStorage filmStorage;
     private final UserStorage userStorage;
@@ -29,7 +30,7 @@ public class FilmService {
     private final LikesRepository likesRepository;
     private final DirectorRepository directorRepository;
     private final FilmRepository filmRepository;
-
+  
     public FilmService(@Autowired @Qualifier("filmRepository") FilmStorage filmStorage,
                        @Autowired @Qualifier("userRepository") UserStorage userStorage,
                        @Autowired GenreRepository genreRepository,
@@ -43,7 +44,6 @@ public class FilmService {
         this.directorRepository = directorRepository;
         this.filmRepository = filmRepository;
     }
-
 
     public Film createFilm(Film film) {
         if (!filmStorage.ratingExists(film.getMpa().getId())) {
@@ -193,5 +193,21 @@ public class FilmService {
 
     public Collection<Film> getTopFilmsByGenreAndYear(int limit, Integer genreId, Integer year) {
         return filmRepository.getTopFilmsByGenreAndYear(limit, genreId, year);
+    }
+    //доделать
+    public Collection<Film> getSearchFilms(String query, String by) {
+        Collection<Film> searchingFilms = filmStorage.getSearchFilms(query, by);
+        if (!searchingFilms.isEmpty()) {
+            Map<Integer, Set<Genre>> genresByFilmId = genreRepository.getAllByFilms();
+            Map<Integer, List<Director>> directorsByFilmId = directorRepository.findAllByFilms();
+
+            searchingFilms.forEach(film -> {
+                film.setGenres(genresByFilmId.getOrDefault(film.getId(), Set.of()));  // Устанавливаем жанры
+                film.setDirectors(directorsByFilmId.getOrDefault(film.getId(), List.of()));  // Устанавливаем режиссёров
+                System.out.println(film.getId());
+
+            });
+        }
+        return searchingFilms;
     }
 }

@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.dal;
 
+import jakarta.validation.ValidationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -77,6 +78,18 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
                 LIMIT ?
             """;
     private final JdbcTemplate jdbc;
+    private static final String FIND_BY_NAME_QUERY = "SELECT f.*, r.RATING_NAME mpa_name FROM FILMS f " +
+            "LEFT JOIN RATING r ON f.RATING_ID = r.RATING_ID WHERE LOWER(f.FILM_NAME) like LOWER(?)";
+    private static final String FIND_BY_DIRECTOR_NAME_QUERY = "SELECT f.*, r.RATING_NAME mpa_name FROM FILMS f " +
+            "LEFT JOIN RATING r ON f.RATING_ID = r.RATING_ID WHERE FILM_ID IN " +
+            "(SELECT fd.FILM_ID FROM FILM_DIRECTORS fd " +
+            "LEFT JOIN DIRECTORS d ON fd.DIRECTOR_ID = d.DIRECTOR_ID " +
+            "WHERE LOWER(d.DIRECTOR_NAME) like LOWER(?))";
+    private static final String FIND_BY_DIRECTOR_NAME_AND_FILM_NAME_QUERY = "SELECT f.*, r.RATING_NAME mpa_name FROM FILMS f " +
+            "LEFT JOIN RATING r ON f.RATING_ID = r.RATING_ID WHERE FILM_ID IN " +
+            "(SELECT fd.FILM_ID FROM FILM_DIRECTORS fd " +
+            "LEFT JOIN DIRECTORS d ON fd.DIRECTOR_ID = d.DIRECTOR_ID " +
+            "WHERE LOWER(d.DIRECTOR_NAME) like LOWER(?)) and LOWER(f.FILM_NAME) like LOWER(?)";
 
     @Autowired
     public FilmRepository(JdbcTemplate jdbc, RowMapper<Film> mapper) {
@@ -221,6 +234,48 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
         return findMany(GET_TOP_FILMS_SQL, genreId, genreId, year, year, limit);
     }
 
+    @Override
+    public Collection<Film> getSearchFilms(String query, String by) {
+        Collection<Film> films = new ArrayList<>();
+        String[] queryParts = query.split(",");
+        String[] byParts = by.split(",");
+        if (byParts.length == 1) {
+            if (byParts[0].equals("title")) {
+                films = findMany(FIND_BY_NAME_QUERY, "%" + query + "%");
+            } else if (byParts[0].equals("director")) {
+                films = findMany(FIND_BY_DIRECTOR_NAME_QUERY, "%" + query + "%");
+            } else {
+                throw new ValidationException("Указано неверное значение критерия поиска (by) для поиска фильма." +
+                        " Значение переданного критерия поиска (by) = " + by);
+            }
+        } else if (byParts.length == 2) {
+            String directorQuery;
+            String titleQuery;
+            if (byParts[0].equals("title") && byParts[1].equals("director")) {
+                directorQuery = queryParts.length == 2 ? queryParts[1] : null;
+                titleQuery = queryParts[0];
+            } else if (byParts[0].equals("director") && byParts[1].equals("title")) {
+                directorQuery = queryParts[0];
+                titleQuery = queryParts.length == 2 ? queryParts[1] : null;
+            } else {
+                throw new ValidationException("Указано неверное значение критерия поиска (by) для поиска фильма." +
+                        " Значение переданного критерия поиска (by) = " + by);
+            }
 
+            if (directorQuery == null && titleQuery != null) {
+                films = findMany(FIND_BY_NAME_QUERY, "%" + titleQuery + "%");
+                films.addAll(findMany(FIND_BY_DIRECTOR_NAME_QUERY, "%" + queryParts[0] + "%"));
+            } else if (titleQuery == null && directorQuery != null) {
+                films = findMany(FIND_BY_DIRECTOR_NAME_QUERY, "%" + directorQuery + "%");
+                films.addAll(films = findMany(FIND_BY_NAME_QUERY, "%" + queryParts[0] + "%"));
+            } else if (directorQuery != null) {
+                films = findMany(FIND_BY_DIRECTOR_NAME_AND_FILM_NAME_QUERY, "%" + directorQuery + "%", "%" + titleQuery + "%");
+            }
+        } else {
+            throw new ValidationException("Указано неверное значение критерия поиска (by) для поиска фильма." +
+                    " Значение переданного критерия поиска (by) = " + by);
+        }
+        return films.stream().sorted(Comparator.comparing(Film::getCountLikes, Comparator.reverseOrder())).toList();
+    }
 }
 

@@ -1,11 +1,13 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import jakarta.validation.Valid;
+import jakarta.validation.ValidationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.enums.FilmFilters;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
 import java.util.Collection;
@@ -78,5 +80,13 @@ public class FilmController {
             @RequestParam(required = false) Integer genreId,
             @RequestParam(required = false) Integer year) {
         return filmService.getTopFilmsByGenreAndYear(count, genreId, year);
+    }
+    @GetMapping("/search")
+    public Collection<Film> getSearchFilms(@RequestParam String query,
+                                           @RequestParam String by) {
+        if (FilmFilters.from(by) == null) {
+            throw new ValidationException("Указано неверное значение критерия поиска (by)");
+        }
+        return filmService.getSearchFilms(query, by);
     }
 }
