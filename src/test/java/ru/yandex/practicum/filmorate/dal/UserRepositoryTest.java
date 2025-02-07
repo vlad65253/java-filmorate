@@ -25,12 +25,12 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
         UserRowMapper.class,
         FriendshipRepository.class})
 class UserRepositoryTest {
-    private final UserRepository userRepository;
-    @Autowired
-    private FriendshipRepository friendshipRepository;
     private static User user1;
     private static User user2;
     private static User user3;
+    private final UserRepository userRepository;
+    @Autowired
+    private FriendshipRepository friendshipRepository;
 
     @BeforeAll
     static void beforeAll() {

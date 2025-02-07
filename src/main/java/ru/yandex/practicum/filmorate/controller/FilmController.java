@@ -45,11 +45,6 @@ public class FilmController {
         return filmService.getFilm(id);
     }
 
-    @GetMapping("/popular")
-    public Collection<Film> getPopularFilms(@RequestParam(defaultValue = "10") int count) {
-        return filmService.getTopFilms(count);
-    }
-
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/{id}/like/{userId}")
     public void deleteLike(@PathVariable int id, @PathVariable int userId) {
@@ -81,5 +76,13 @@ public class FilmController {
             throw new ValidationException("Указано неверное значение критерия поиска (by)");
         }
         return filmService.getSearchFilms(query, by);
+    }
+
+    @GetMapping("/popular")
+    public Collection<Film> getPopularFilms(
+            @RequestParam(defaultValue = "10") int count,
+            @RequestParam(required = false) Integer genreId,
+            @RequestParam(required = false) Integer year) {
+        return filmService.getTopFilmsByGenreAndYear(count, genreId, year);
     }
 }
