@@ -72,7 +72,6 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
             "(SELECT fd.FILM_ID FROM FILM_DIRECTORS fd " +
             "LEFT JOIN DIRECTORS d ON fd.DIRECTOR_ID = d.DIRECTOR_ID " +
             "WHERE LOWER(d.DIRECTOR_NAME) like LOWER(?)) and LOWER(f.FILM_NAME) like LOWER(?)";
-
     private static final String FIND_FILMS_BY_IDS_SQL =
             "SELECT FILMS.*, RATING.RATING_NAME FROM FILMS " +
                     "JOIN RATING ON FILMS.RATING_ID = RATING.RATING_ID " +
@@ -83,12 +82,12 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
                 JOIN RATING r ON f.RATING_ID = r.RATING_ID
                 LEFT JOIN LIKE_LIST l ON f.FILM_ID = l.FILM_ID
                 LEFT JOIN FILMS_GENRE fg ON f.FILM_ID = fg.FILM_ID
-                WHERE 
-                    (? IS NULL OR fg.GENRE_ID = ?) AND 
+                WHERE
+                    (? IS NULL OR fg.GENRE_ID = ?) AND
                     (? IS NULL OR EXTRACT(YEAR FROM f.RELEASE_DATE) = ?)
                 GROUP BY f.FILM_ID, r.RATING_NAME
                 ORDER BY COUNT_LIKES DESC
-                LIMIT ?
+                LIMIT?
             """;
     private final JdbcTemplate jdbc;
 
@@ -159,6 +158,7 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
     public void deleteFilm(Integer id) {
         delete(DELETE_FILM_QUERY, id);
     }
+
     private Map<Integer, Set<Genre>> getAllGenres() {
         Map<Integer, Set<Genre>> genres = new HashMap<>();
         return jdbc.query(GET_ALL_GENERES_FILMS, (ResultSet rs) -> {
