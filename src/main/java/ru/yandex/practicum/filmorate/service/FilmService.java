@@ -2,9 +2,11 @@ package ru.yandex.practicum.filmorate.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dal.DirectorRepository;
+import ru.yandex.practicum.filmorate.dal.FilmRepository;
 import ru.yandex.practicum.filmorate.dal.GenreRepository;
 import ru.yandex.practicum.filmorate.dal.LikesRepository;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
@@ -14,17 +16,34 @@ import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class FilmService {
     private final FilmStorage filmStorage;
     private final UserStorage userStorage;
     private final GenreRepository genreRepository;
     private final LikesRepository likesRepository;
     private final DirectorRepository directorRepository;
+    private final FilmRepository filmRepository;
+
+    public FilmService(@Autowired @Qualifier("filmRepository") FilmStorage filmStorage,
+                       @Autowired @Qualifier("userRepository") UserStorage userStorage,
+                       @Autowired GenreRepository genreRepository,
+                       @Autowired LikesRepository likesRepository,
+                       @Autowired DirectorRepository directorRepository,
+                       @Autowired FilmRepository filmRepository) {
+        this.filmStorage = filmStorage;
+        this.genreRepository = genreRepository;
+        this.likesRepository = likesRepository;
+        this.userStorage = userStorage;
+        this.directorRepository = directorRepository;
+        this.filmRepository = filmRepository;
+    }
 
     public Film createFilm(Film film) {
         if (!filmStorage.ratingExists(film.getMpa().getId())) {
@@ -188,4 +207,9 @@ public class FilmService {
         }
         return searchingFilms;
     }
-}
+        public Collection<Film> getTopFilmsByGenreAndYear(int limit, Integer genreId, Integer year){
+            return filmRepository.getTopFilmsByGenreAndYear(limit, genreId, year);
+
+        }
+    }
+
