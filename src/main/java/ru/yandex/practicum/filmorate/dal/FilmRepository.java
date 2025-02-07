@@ -60,6 +60,23 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
             GROUP BY f.FILM_ID, r.RATING_NAME, f.FILM_NAME, f.DESCRIPTION, f.RELEASE_DATE, f.DURATION, f.RATING_ID
             ORDER BY LIKES DESC
             """;
+    private static final String FIND_FILMS_BY_IDS_SQL =
+            "SELECT FILMS.*, RATING.RATING_NAME FROM FILMS " +
+                    "JOIN RATING ON FILMS.RATING_ID = RATING.RATING_ID " +
+                    "WHERE FILM_ID IN (%s)";
+    private static final String GET_TOP_FILMS_SQL = """
+                SELECT f.*, r.RATING_NAME AS mpa_name, COUNT(DISTINCT l.USER_ID) AS COUNT_LIKES
+                FROM FILMS f
+                JOIN RATING r ON f.RATING_ID = r.RATING_ID
+                LEFT JOIN LIKE_LIST l ON f.FILM_ID = l.FILM_ID
+                LEFT JOIN FILMS_GENRE fg ON f.FILM_ID = fg.FILM_ID
+                WHERE 
+                    (? IS NULL OR fg.GENRE_ID = ?) AND 
+                    (? IS NULL OR EXTRACT(YEAR FROM f.RELEASE_DATE) = ?)
+                GROUP BY f.FILM_ID, r.RATING_NAME
+                ORDER BY COUNT_LIKES DESC
+                LIMIT ?
+            """;
     private static final String FIND_BY_NAME_QUERY = "SELECT f.*, r.RATING_NAME mpa_name FROM FILMS f " +
             "LEFT JOIN RATING r ON f.RATING_ID = r.RATING_ID WHERE LOWER(f.FILM_NAME) like LOWER(?)";
     private static final String FIND_BY_DIRECTOR_NAME_QUERY = "SELECT f.*, r.RATING_NAME mpa_name FROM FILMS f " +
@@ -72,23 +89,6 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
             "(SELECT fd.FILM_ID FROM FILM_DIRECTORS fd " +
             "LEFT JOIN DIRECTORS d ON fd.DIRECTOR_ID = d.DIRECTOR_ID " +
             "WHERE LOWER(d.DIRECTOR_NAME) like LOWER(?)) and LOWER(f.FILM_NAME) like LOWER(?)";
-    private static final String FIND_FILMS_BY_IDS_SQL =
-            "SELECT FILMS.*, RATING.RATING_NAME FROM FILMS " +
-                    "JOIN RATING ON FILMS.RATING_ID = RATING.RATING_ID " +
-                    "WHERE FILM_ID IN (%s)";
-    private static final String GET_TOP_FILMS_SQL = """
-                SELECT f.*, r.RATING_NAME AS mpa_name, COUNT(DISTINCT l.USER_ID) AS COUNT_LIKES
-                FROM FILMS f
-                JOIN RATING r ON f.RATING_ID = r.RATING_ID
-                LEFT JOIN LIKE_LIST l ON f.FILM_ID = l.FILM_ID
-                LEFT JOIN FILMS_GENRE fg ON f.FILM_ID = fg.FILM_ID
-                WHERE
-                    (? IS NULL OR fg.GENRE_ID = ?) AND
-                    (? IS NULL OR EXTRACT(YEAR FROM f.RELEASE_DATE) = ?)
-                GROUP BY f.FILM_ID, r.RATING_NAME
-                ORDER BY COUNT_LIKES DESC
-                LIMIT?
-            """;
     private final JdbcTemplate jdbc;
 
 
@@ -215,6 +215,26 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
         return findMany(GET_COMMON_FILMS_QUERY, userId, friendId);
     }
 
+    public Set<Integer> getLikedFilmsByUser(Integer userId) {
+        String sql = "SELECT FILM_ID FROM LIKE_LIST WHERE USER_ID = ?";
+        return new HashSet<>(jdbc.queryForList(sql, Integer.class, userId));
+    }
+
+    public Collection<Film> findFilmsByIds(Set<Integer> filmIds) {
+        if (filmIds.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        String placeholders = String.join(",", Collections.nCopies(filmIds.size(), "?"));
+        String sql = String.format(FIND_FILMS_BY_IDS_SQL, placeholders);
+
+        return findMany(sql, filmIds.toArray());
+    }
+
+    public Collection<Film> getTopFilmsByGenreAndYear(int limit, Integer genreId, Integer year) {
+        return findMany(GET_TOP_FILMS_SQL, genreId, genreId, year, year, limit);
+    }
+
     @Override
     public Collection<Film> getSearchFilms(String query, String by) {
         Collection<Film> films = new ArrayList<>();
@@ -257,26 +277,6 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
                     " Значение переданного критерия поиска (by) = " + by);
         }
         return films.stream().sorted(Comparator.comparing(Film::getCountLikes, Comparator.reverseOrder())).toList();
-    }
-
-    public Set<Integer> getLikedFilmsByUser(Integer userId) {
-        String sql = "SELECT FILM_ID FROM LIKE_LIST WHERE USER_ID = ?";
-        return new HashSet<>(jdbc.queryForList(sql, Integer.class, userId));
-    }
-
-    public Collection<Film> findFilmsByIds(Set<Integer> filmIds) {
-        if (filmIds.isEmpty()) {
-            return Collections.emptyList();
-        }
-
-        String placeholders = String.join(",", Collections.nCopies(filmIds.size(), "?"));
-        String sql = String.format(FIND_FILMS_BY_IDS_SQL, placeholders);
-
-        return findMany(sql, filmIds.toArray());
-    }
-
-    public Collection<Film> getTopFilmsByGenreAndYear(int limit, Integer genreId, Integer year) {
-        return findMany(GET_TOP_FILMS_SQL, genreId, genreId, year, year, limit);
     }
 
 }

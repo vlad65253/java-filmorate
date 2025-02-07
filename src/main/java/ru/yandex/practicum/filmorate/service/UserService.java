@@ -23,6 +23,8 @@ import java.util.stream.Collectors;
 public class UserService {
     private final UserStorage userStorage;
     private final FriendshipRepository friendshipRepository;
+    private final UserRepository userRepository;
+    private final FilmRepository filmRepository;
     private final EventStorage eventStorage;
     private final UserRepository userRepository;
     private final FilmRepository filmRepository;
@@ -74,6 +76,26 @@ public class UserService {
         getUserById(firstId);
         getUserById(secondId);
         return friendshipRepository.getCommonFriends(firstId, secondId);
+    }
+
+    public Collection<Film> getRecommendations(Integer userId) {
+        Set<Integer> userLikedFilms = filmRepository.getLikedFilmsByUser(userId);
+
+        Map<Integer, Long> commonLikesCount = userRepository.findUsersWithCommonLikes(userLikedFilms, userId);
+
+        Integer similarUserId = commonLikesCount.entrySet().stream()
+                .max(Map.Entry.comparingByValue())
+                .map(Map.Entry::getKey)
+                .orElse(null);
+
+        if (similarUserId == null) {
+            return Collections.emptyList();
+        }
+
+        Set<Integer> similarUserLikedFilms = filmRepository.getLikedFilmsByUser(similarUserId);
+        similarUserLikedFilms.removeAll(userLikedFilms);
+
+        return filmRepository.findFilmsByIds(similarUserLikedFilms);
     }
 
     public Set<Event> getFeedUserById(Integer id) {

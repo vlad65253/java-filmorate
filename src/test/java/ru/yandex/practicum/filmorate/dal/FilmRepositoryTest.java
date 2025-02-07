@@ -93,6 +93,7 @@ class FilmRepositoryTest {
         filmRepository.createFilm(film1);
         Film film = filmRepository.getFilm(film1.getId());
         assertThat(film).hasFieldOrPropertyWithValue("id", 19);
+
     }
 
     @Test

@@ -190,6 +190,10 @@ public class FilmService {
         return commonFilms;
     }
 
+    public Collection<Film> getTopFilmsByGenreAndYear(int limit, Integer genreId, Integer year) {
+        return filmRepository.getTopFilmsByGenreAndYear(limit, genreId, year);
+    }
+
     //доделать
     public Collection<Film> getSearchFilms(String query, String by) {
         Collection<Film> searchingFilms = filmStorage.getSearchFilms(query, by);

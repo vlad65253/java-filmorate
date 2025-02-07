@@ -69,6 +69,14 @@ public class FilmController {
         return filmService.getCommonFilms(userId, friendId);
     }
 
+    @GetMapping("/popular")
+    public Collection<Film> getPopularFilms(
+            @RequestParam(defaultValue = "10") int count,
+            @RequestParam(required = false) Integer genreId,
+            @RequestParam(required = false) Integer year) {
+        return filmService.getTopFilmsByGenreAndYear(count, genreId, year);
+    }
+
     @GetMapping("/search")
     public Collection<Film> getSearchFilms(@RequestParam String query,
                                            @RequestParam String by) {
