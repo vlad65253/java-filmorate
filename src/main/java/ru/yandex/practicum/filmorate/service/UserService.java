@@ -6,19 +6,13 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dal.FilmRepository;
 import ru.yandex.practicum.filmorate.dal.FriendshipRepository;
 import ru.yandex.practicum.filmorate.dal.UserRepository;
-import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Event;
+import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.EventStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Map;
-import java.util.Set;
-import java.util.Comparator;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -99,7 +93,7 @@ public class UserService {
 
         return filmRepository.findFilmsByIds(similarUserLikedFilms);
     }
-    
+
     public Set<Event> getFeedUserById(Integer id) {
         return eventStorage.getFeedUserById(id).stream()
                 .sorted(Comparator.comparing(Event::getUserId))

@@ -2,7 +2,6 @@ package ru.yandex.practicum.filmorate.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dal.DirectorRepository;
 import ru.yandex.practicum.filmorate.dal.FilmRepository;
@@ -30,20 +29,6 @@ public class FilmService {
     private final LikesRepository likesRepository;
     private final DirectorRepository directorRepository;
     private final FilmRepository filmRepository;
-  
-    public FilmService(@Autowired @Qualifier("filmRepository") FilmStorage filmStorage,
-                       @Autowired @Qualifier("userRepository") UserStorage userStorage,
-                       @Autowired GenreRepository genreRepository,
-                       @Autowired LikesRepository likesRepository,
-                       @Autowired DirectorRepository directorRepository,
-                       @Autowired FilmRepository filmRepository) {
-        this.filmStorage = filmStorage;
-        this.genreRepository = genreRepository;
-        this.likesRepository = likesRepository;
-        this.userStorage = userStorage;
-        this.directorRepository = directorRepository;
-        this.filmRepository = filmRepository;
-    }
 
     public Film createFilm(Film film) {
         if (!filmStorage.ratingExists(film.getMpa().getId())) {
@@ -194,6 +179,7 @@ public class FilmService {
     public Collection<Film> getTopFilmsByGenreAndYear(int limit, Integer genreId, Integer year) {
         return filmRepository.getTopFilmsByGenreAndYear(limit, genreId, year);
     }
+
     //доделать
     public Collection<Film> getSearchFilms(String query, String by) {
         Collection<Film> searchingFilms = filmStorage.getSearchFilms(query, by);

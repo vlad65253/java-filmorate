@@ -81,6 +81,7 @@ public class FilmController {
             @RequestParam(required = false) Integer year) {
         return filmService.getTopFilmsByGenreAndYear(count, genreId, year);
     }
+
     @GetMapping("/search")
     public Collection<Film> getSearchFilms(@RequestParam String query,
                                            @RequestParam String by) {

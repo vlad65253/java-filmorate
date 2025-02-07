@@ -77,7 +77,6 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
                 ORDER BY COUNT_LIKES DESC
                 LIMIT ?
             """;
-    private final JdbcTemplate jdbc;
     private static final String FIND_BY_NAME_QUERY = "SELECT f.*, r.RATING_NAME mpa_name FROM FILMS f " +
             "LEFT JOIN RATING r ON f.RATING_ID = r.RATING_ID WHERE LOWER(f.FILM_NAME) like LOWER(?)";
     private static final String FIND_BY_DIRECTOR_NAME_QUERY = "SELECT f.*, r.RATING_NAME mpa_name FROM FILMS f " +
@@ -90,6 +89,7 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
             "(SELECT fd.FILM_ID FROM FILM_DIRECTORS fd " +
             "LEFT JOIN DIRECTORS d ON fd.DIRECTOR_ID = d.DIRECTOR_ID " +
             "WHERE LOWER(d.DIRECTOR_NAME) like LOWER(?)) and LOWER(f.FILM_NAME) like LOWER(?)";
+    private final JdbcTemplate jdbc;
 
     @Autowired
     public FilmRepository(JdbcTemplate jdbc, RowMapper<Film> mapper) {
