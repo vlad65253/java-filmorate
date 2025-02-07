@@ -59,9 +59,7 @@ public class FilmService {
         // Сохранение жанров
         Set<Genre> genres = film.getGenres();
         if (genres != null && !genres.isEmpty()) {
-            genreRepository.addGenres(createdFilm.getId(), genres.stream()
-                    .map(Genre::getId)
-                    .toList());
+            genreRepository.addGenres(film, genres.stream().toList());
         }
         // Сохранение фильмов
         if (film.getDirectors() != null && !film.getDirectors().isEmpty()) {
@@ -74,41 +72,38 @@ public class FilmService {
     }
 
     public Film updateFilm(Film filmUpdated) {
+        Film savedFilm = getFilm(filmUpdated.getId());
         if (filmStorage.getFilm(filmUpdated.getId()) == null) {
             throw new NotFoundException("Не передан идентификатор фильма");
         }
         if (!filmStorage.ratingExists(filmUpdated.getMpa().getId())) {
             throw new NotFoundException("Рейтинг МПА с ID " + filmUpdated.getMpa().getId() + " не найден");
         }
-        if (filmUpdated.getGenres() != null && !filmUpdated.getGenres().isEmpty()) {
+        if (!filmUpdated.getGenres().isEmpty()) {
             for (Genre genre : filmUpdated.getGenres()) {
                 if (!filmStorage.genreTry(genre.getId())) {
                     throw new NotFoundException("Жанр с ID " + genre.getId() + " не найден");
                 }
             }
         }
-        Film updatedFilm = filmStorage.updateFilm(filmUpdated);
 
         // Обновление жанров
-        if (updatedFilm.getGenres() != null && !updatedFilm.getGenres().isEmpty()) {
-            genreRepository.delGenres(updatedFilm.getId());
-            genreRepository.addGenres(updatedFilm.getId(), updatedFilm.getGenres()
-                    .stream()
-                    .map(Genre::getId)
-                    .toList());
-        }
+
+        genreRepository.delGenres(savedFilm.getId());
+        genreRepository.addGenres(savedFilm, filmUpdated.getGenres().stream().toList());
 
         // Обновление фильмов
-        if (filmUpdated.getDirectors() != null && !filmUpdated.getDirectors().isEmpty()) {
+        if (!filmUpdated.getDirectors().isEmpty()) {
             // Удаляем существующие связи с режиссёрами для этого фильма
-            directorRepository.delDirector(updatedFilm.getId());
+            directorRepository.delDirector(savedFilm.getId());
             // Добавляем новые связи
-            directorRepository.addDirector(updatedFilm.getId(),
+            directorRepository.addDirector(savedFilm.getId(),
                     filmUpdated.getDirectors()
                             .stream()
                             .map(Director::getId)
                             .toList());
         }
+        Film updatedFilm = filmStorage.updateFilm(filmUpdated);
 
         return updatedFilm;
     }

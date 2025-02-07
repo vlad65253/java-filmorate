@@ -4,6 +4,8 @@ import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
+import ru.yandex.practicum.filmorate.mapper.GenreRowMapper;
+import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 
 import java.sql.PreparedStatement;
@@ -20,12 +22,17 @@ public class GenreRepository extends BaseRepository<Genre> {
     private static final String GET_GERNE_BY_ID = "SELECT * FROM GENRE " +
             "WHERE GENRE_ID = ?";
     private static final String ADD_GENRE_QUERY = "INSERT INTO FILMS_GENRE (FILM_ID, GENRE_ID) VALUES (?, ?)";
+
     private static final String DEL_GENRE_QUERY = "DELETE FROM FILMS_GENRE WHERE FILM_ID = ?";
     private static final String FIND_ALL_BY_FILMS = """
             SELECT fg.FILM_ID, g.*
             FROM FILMS_GENRE fg
             LEFT JOIN GENRE g ON fg.GENRE_ID = g.GENRE_ID
             """;
+    private static final String FIND_BY_ID_QUERY = "SELECT * FROM GENRE WHERE GENRE_ID IN " +
+            "(SELECT GENRE_ID FROM FILMS_GENRE WHERE FILM_ID = ?)";
+    private static final String UPDATE_QUERY = "UPDATE GENRE SET GENRE_NAME = ? WHERE GENRE_ID = ?";
+
 
 
     public GenreRepository(JdbcTemplate jdbc, RowMapper<Genre> mapper) {
@@ -40,24 +47,19 @@ public class GenreRepository extends BaseRepository<Genre> {
         return findOne(GET_GERNE_BY_ID, id);
     }
 
-    public void addGenres(Integer filmId, List<Integer> genresId) {
-        jdbc.batchUpdate(ADD_GENRE_QUERY, new BatchPreparedStatementSetter() {
-            @SuppressWarnings("NullableProblems")
-            @Override
-            public void setValues(PreparedStatement ps, int i) throws SQLException {
-                ps.setInt(1, filmId);
-                ps.setInt(2, genresId.get(i));
-            }
-
-            @Override
-            public int getBatchSize() {
-                return genresId.size();
-            }
-        });
+    public void addGenre(Film film, Genre genre) {
+        jdbc.update(ADD_GENRE_QUERY, film.getId(), genre.getId());
+    }
+    public List<Genre> getGenres(Film film){
+        return jdbc.query(FIND_BY_ID_QUERY, new GenreRowMapper(), film.getId());
     }
 
     public void delGenres(long id) {
         delete(DEL_GENRE_QUERY, id);
+    }
+    public Genre update(Genre genre) {
+        update(UPDATE_QUERY, genre.getName(), genre.getId());
+        return genre;
     }
 
     public Map<Integer, Set<Genre>> getAllByFilms() {
@@ -66,9 +68,24 @@ public class GenreRepository extends BaseRepository<Genre> {
                                 .intValue(),
                         mapping(row -> Genre.builder()
                                 .id((Integer) row.get("GENRE_ID"))
-                                .name((String) row.get("name"))
+                                .name((String) row.get("GENRE_NAME"))
                                 .build(), Collectors.toCollection(LinkedHashSet::new))
                 )
         );
+    }
+
+    public void addGenres(Film film, List<Genre> genres) {
+        jdbc.batchUpdate(ADD_GENRE_QUERY, new BatchPreparedStatementSetter() {
+            @Override
+            public void setValues(PreparedStatement ps, int i) throws SQLException {
+                ps.setLong(1, film.getId());
+                ps.setLong(2, genres.get(i).getId());
+            }
+
+            @Override
+            public int getBatchSize() {
+                return genres.size();
+            }
+        });
     }
 }

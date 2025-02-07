@@ -27,6 +27,7 @@ public class DirectorRepository extends BaseRepository<Director> implements Dire
     private static final String UPDATE_DIRECTOR_FOR_DIRECTORS = "UPDATE DIRECTORS SET DIRECTOR_NAME = ? WHERE DIRECTOR_ID = ?";
     private static final String ADD_DIRECTOR_QUERY = "INSERT INTO FILM_DIRECTORS (FILM_ID, DIRECTOR_ID) VALUES (?, ?)";
     private static final String DEL_DIRECTOR_QUERY = "DELETE FROM FILM_DIRECTORS WHERE FILM_ID = ?";
+    private static final String DEL_DIRECTOR_ID_QUERY = "DELETE FROM DIRECTORS WHERE DIRECTOR_ID = ?";
     private static final String FIND_ALL_BY_FILM_ID_QUERY = """
              SELECT fd.DIRECTOR_ID, d.DIRECTOR_NAME FROM FILM_DIRECTORS fd
              JOIN DIRECTORS d ON fd.DIRECTOR_ID = d.DIRECTOR_ID
@@ -68,6 +69,9 @@ public class DirectorRepository extends BaseRepository<Director> implements Dire
     public void delDirector(long id) {
         delete(DEL_DIRECTOR_QUERY, id);
     }
+    public void delDirectorTable(Integer id){
+        delete(DEL_DIRECTOR_ID_QUERY, id);
+    }
 
     public boolean directorExists(Integer directorId) {
         Integer count = jdbc.queryForObject(
@@ -101,7 +105,6 @@ public class DirectorRepository extends BaseRepository<Director> implements Dire
     public Map<Integer, List<Director>> findAllByFilms() {
         List<Map<String, Object>> rows = jdbc.queryForList(FIND_ALL_BY_FILMS);
 
-        // 🔹 Выводим в логи, какие данные загружаются
         System.out.println("DEBUG: Загруженные режиссёры: " + rows);
 
         return rows.stream().collect(groupingBy(
