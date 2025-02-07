@@ -24,4 +24,6 @@ public interface FilmStorage {
     boolean genreTry(Integer id);
 
     Collection<Film> getCommonFilms(int userId, int friendId);
+
+    Collection<Film> getSearchFilms(String query, String by);
 }

@@ -1,25 +1,27 @@
 package ru.yandex.practicum.filmorate.service;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dal.FriendshipRepository;
+import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.storage.EventStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.util.Collection;
+import java.util.Comparator;
+import java.util.LinkedHashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class UserService {
     private final UserStorage userStorage;
     private final FriendshipRepository friendshipRepository;
-
-    public UserService(@Autowired @Qualifier("userRepository") UserStorage userStorage, @Autowired FriendshipRepository friendshipRepository) {
-        this.userStorage = userStorage;
-        this.friendshipRepository = friendshipRepository;
-    }
+    private final EventStorage eventStorage;
 
     public User createUser(User user) {
         if (user.getName() == null || user.getName().isBlank()) {
@@ -68,5 +70,11 @@ public class UserService {
         getUserById(firstId);
         getUserById(secondId);
         return friendshipRepository.getCommonFriends(firstId, secondId);
+    }
+
+    public Set<Event> getFeedUserById(Integer id) {
+        return eventStorage.getFeedUserById(id).stream()
+                .sorted(Comparator.comparing(Event::getUserId))
+                .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 }
