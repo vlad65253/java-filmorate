@@ -14,6 +14,7 @@ import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 @Data
@@ -34,7 +35,7 @@ public class Film implements Serializable {
     private Rating mpa;
     @JsonIgnore
     private Set<Integer> likedList = new HashSet<>();
-    private Set<Genre> genres = new HashSet<>();
-    private Collection<Director> directors = new HashSet<>();
+    private Set<Genre> genres = new LinkedHashSet<>();
+    private Collection<Director> directors = new LinkedHashSet<>();
     private Integer countLikes = 0;
 }

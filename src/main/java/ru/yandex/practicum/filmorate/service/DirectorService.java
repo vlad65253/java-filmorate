@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.service;
 
+import jakarta.validation.ValidationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -30,24 +31,24 @@ public class DirectorService {
         directorRepository.addDirector(filmId, directorId);
     }
 
-    public void deleteDirector(Integer filmId) {
-        directorRepository.delDirector(filmId);
+    public void deleteDirector(Integer directorId) {
+        directorRepository.delDirectorTable(directorId);
     }
 
     public Director createDirector(Director director) {
-        try {
-            return directorRepository.createDirector(director);
-        } catch (DataIntegrityViolationException e) {
-            throw new DataIntegrityViolationException("Режиссер с таким именем уже существует: " + director.getName());
+        assert director.getName() != null;
+        if(director.getName().trim().isEmpty()){
+            throw new ValidationException("Имя директора пустое");
         }
+        return directorRepository.createDirector(director);
     }
 
     public Director updateDirector(Director director) {
         getDirectorById(director.getId());
-        try {
-            return directorRepository.updateDirector(director);
-        } catch (DataIntegrityViolationException e) {
-            throw new DataIntegrityViolationException("Режиссер с таким именем уже существует: " + director.getName());
+        assert director.getName() != null;
+        if(director.getName().trim().isEmpty()){
+            throw new ValidationException("Имя директора пустое");
         }
+        return directorRepository.updateDirector(director);
     }
 }

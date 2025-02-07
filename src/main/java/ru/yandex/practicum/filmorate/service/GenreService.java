@@ -23,8 +23,12 @@ public class GenreService {
         return genreRepository.getGenreById(id);
     }
 
-    public void updateGenre(Integer filmId, List<Integer> genresId) {
-        genreRepository.addGenres(filmId, genresId);
+    public Genre update(Genre genre) {
+        Genre savedGenre = genreRepository.getGenreById(genre.getId());
+        if (genre.getName() != null) savedGenre.setName(genre.getName());
+        genreRepository.update(savedGenre);
+        log.info("Обновлен жанр с ID {}", genre.getId());
+        return savedGenre;
     }
 
     public void deleteGenre(Integer filmId) {
