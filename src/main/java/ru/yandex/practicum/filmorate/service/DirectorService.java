@@ -1,54 +1,64 @@
 package ru.yandex.practicum.filmorate.service;
 
-import jakarta.validation.ValidationException;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.validation.annotation.Validated;
 import ru.yandex.practicum.filmorate.dal.DirectorRepository;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Director;
 
-import java.util.ArrayList;
-import java.util.Collection;
+import java.util.Comparator;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
-@SuppressWarnings("ALL")
-@Slf4j
+@Validated
 @Service
 @RequiredArgsConstructor
 public class DirectorService {
-    private final DirectorRepository directorRepository;
+    private final DirectorRepository directorStorage;
 
-    public Collection<Director> getAllDirectors() {
-        Collection<Director> directors = directorRepository.getAllDirectors();
-        return (directors != null) ? directors : new ArrayList<>();
+    public Set<Director> getDirectors() {
+        return directorStorage.getDirectors().stream()
+                .sorted(Comparator.comparing(Director::getId))
+                .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
-    public Director getDirectorById(Integer id) {
-        return directorRepository.getDirectorById(id);
-    }
-
-    /**
-     * Добавляет для указанного фильма список режиссёров.
-     */
-    public void updateDirectors(Integer filmId, List<Integer> directorIds) {
-        directorRepository.addDirector(filmId, directorIds);
-    }
-
-    /**
-     * Удаляет режиссёра из таблицы DIRECTORS по ID.
-     */
-    public void deleteDirector(Integer directorId) {
-        directorRepository.delDirectorTable(directorId);
+    public Director getDirectorById(long id) {
+        return directorStorage.getDirectorById(id)
+                .orElseThrow(() -> new NotFoundException("Режиссер не найден."));
     }
 
     public Director createDirector(Director director) {
-        if (director.getName() == null || director.getName().trim().isEmpty()) {
-            throw new ValidationException("Имя директора пустое");
+        if (director.getName().isBlank()) {
+            throw new ValidationException("Поле name не может быть пустым.");
         }
-        return directorRepository.createDirector(director);
+        return directorStorage.createDirector(director);
     }
 
     public Director updateDirector(Director director) {
-        return directorRepository.updateDirector(getDirectorById(director.getId()));
+        directorStorage.getDirectorById(director.getId())
+                .orElseThrow(() -> new NotFoundException("Режиссер не найден."));
+        if (director.getName().isBlank()) {
+            throw new ValidationException("Поле name не может быть пустым.");
+        }
+        return directorStorage.updateDirector(director);
+    }
+
+    public void deleteDirectorById(long id) {
+        directorStorage.getDirectorById(id)
+                .orElseThrow(() -> new ValidationException("Режиссер не найден."));
+        directorStorage.deleteDirectorById(id);
+    }
+
+    public void createDirectorsForFilmById(long filmId, List<Director> directorsId) {
+        directorStorage.createDirectorsForFilmById(filmId, directorsId);
+    }
+
+    public LinkedHashSet<Director> getDirectorsFilmById(long filmId) {
+        return directorStorage.getDirectorsFilmById(filmId);
     }
 }
+

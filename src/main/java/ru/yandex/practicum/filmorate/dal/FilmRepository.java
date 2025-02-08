@@ -139,7 +139,10 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
 
     @Override
     public Film createFilm(Film film) {
-        int id = insert(CREATE_FILM_QUERY,
+        int id = insert("""
+                        INSERT INTO FILMS (FILM_NAME, DESCRIPTION, RELEASE_DATE, DURATION, RATING_ID)
+                        VALUES (?, ?, ?, ?, ?)
+                        """,
                 film.getName(),
                 film.getDescription(),
                 film.getReleaseDate(),
@@ -169,7 +172,9 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
 
     @Override
     public List<Film> getFilms() {
-        return findMany(GET_ALL_FILMS_QUERY);
+        return findMany("""
+                SELECT * FROM FILMS
+                """);
     }
 
     @Override

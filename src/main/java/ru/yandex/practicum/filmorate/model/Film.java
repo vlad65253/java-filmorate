@@ -36,6 +36,5 @@ public class Film implements Serializable {
     @JsonIgnore
     private Set<Integer> likedList;
     private Set<Genre> genres;
-    private Collection<Director> directors;
-    private Integer countLikes = 0;
+    private Set<Director> directors;
 }
