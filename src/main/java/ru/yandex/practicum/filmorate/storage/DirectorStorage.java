@@ -13,9 +13,9 @@ public interface DirectorStorage {
 
     void addDirector(Integer filmId, List<Integer> directorId);
 
-    void delDirector(long id);
+    void delDirector(Integer id);
 
-    boolean directorExists(Integer directorId);
+    void delDirectorTable(Integer directorId);
 
     Director createDirector(Director director);
 

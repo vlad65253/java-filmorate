@@ -76,21 +76,16 @@ public class UserService {
 
     public Collection<Film> getRecommendations(Integer userId) {
         Set<Integer> userLikedFilms = filmRepository.getLikedFilmsByUser(userId);
-
         Map<Integer, Long> commonLikesCount = userRepository.findUsersWithCommonLikes(userLikedFilms, userId);
-
         Integer similarUserId = commonLikesCount.entrySet().stream()
                 .max(Map.Entry.comparingByValue())
                 .map(Map.Entry::getKey)
                 .orElse(null);
-
         if (similarUserId == null) {
             return Collections.emptyList();
         }
-
         Set<Integer> similarUserLikedFilms = filmRepository.getLikedFilmsByUser(similarUserId);
         similarUserLikedFilms.removeAll(userLikedFilms);
-
         return filmRepository.findFilmsByIds(similarUserLikedFilms);
     }
 
@@ -100,4 +95,3 @@ public class UserService {
                 .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 }
-

@@ -18,7 +18,7 @@ public class BaseRepository<T> {
     protected T findOne(String query, Object... params) {
         List<T> result = jdbc.query(query, mapper, params);
         if (result.isEmpty()) {
-            throw new NotFoundException("Не удалось найти данные");
+            throw new NotFoundException("Не удалось найти данные");
         }
         return result.getFirst();
     }
@@ -40,16 +40,13 @@ public class BaseRepository<T> {
     protected Integer insert(String query, Object... params) {
         GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
         jdbc.update(con -> {
-            PreparedStatement ps = con
-                    .prepareStatement(query, PreparedStatement.RETURN_GENERATED_KEYS);
+            PreparedStatement ps = con.prepareStatement(query, PreparedStatement.RETURN_GENERATED_KEYS);
             for (int idx = 0; idx < params.length; idx++) {
                 ps.setObject(idx + 1, params[idx]);
             }
             return ps;
         }, keyHolder);
-
         Integer id = keyHolder.getKeyAs(Integer.class);
-
         if (id != null) {
             return id;
         } else {

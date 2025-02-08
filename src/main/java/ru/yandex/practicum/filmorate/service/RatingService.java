@@ -15,10 +15,14 @@ public class RatingService {
     private final RatingRepository ratingRepository;
 
     public Collection<Rating> getAllRating() {
-        return ratingRepository.getAllRating();
+        Collection<Rating> ratings = ratingRepository.getAllRatings();
+        log.debug("Получено рейтингов: {}", ratings.size());
+        return ratings;
     }
 
     public Rating getRatingById(Integer id) {
-        return ratingRepository.getRatingById(id);
+        Rating rating = ratingRepository.getRatingById(id);
+        log.debug("Получен рейтинг с id: {}", id);
+        return rating;
     }
 }

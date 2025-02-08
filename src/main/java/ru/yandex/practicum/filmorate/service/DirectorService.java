@@ -3,7 +3,6 @@ package ru.yandex.practicum.filmorate.service;
 import jakarta.validation.ValidationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dal.DirectorRepository;
 import ru.yandex.practicum.filmorate.model.Director;
@@ -27,26 +26,31 @@ public class DirectorService {
         return directorRepository.getDirectorById(id);
     }
 
-    public void updateDirectors(Integer filmId, List<Integer> directorId) {
-        directorRepository.addDirector(filmId, directorId);
+    /**
+     * Добавляет для указанного фильма список режиссёров.
+     */
+    public void updateDirectors(Integer filmId, List<Integer> directorIds) {
+        directorRepository.addDirector(filmId, directorIds);
     }
 
+    /**
+     * Удаляет режиссёра из таблицы DIRECTORS по ID.
+     */
     public void deleteDirector(Integer directorId) {
         directorRepository.delDirectorTable(directorId);
     }
 
     public Director createDirector(Director director) {
-        assert director.getName() != null;
-        if(director.getName().trim().isEmpty()){
+        if (director.getName() == null || director.getName().trim().isEmpty()) {
             throw new ValidationException("Имя директора пустое");
         }
         return directorRepository.createDirector(director);
     }
 
     public Director updateDirector(Director director) {
+        // Проверяем существование режиссёра
         getDirectorById(director.getId());
-        assert director.getName() != null;
-        if(director.getName().trim().isEmpty()){
+        if (director.getName() == null || director.getName().trim().isEmpty()) {
             throw new ValidationException("Имя директора пустое");
         }
         return directorRepository.updateDirector(director);

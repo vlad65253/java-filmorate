@@ -29,7 +29,7 @@ public class ReviewService {
 
     public void deleteReview(int reviewId) {
         if (reviewStorage.getReview(reviewId) == null) {
-            throw new NotFoundException("reviewId не найден.");
+            throw new NotFoundException("Отзыв с id " + reviewId + " не найден");
         }
         int userId = reviewStorage.getReview(reviewId).getUserId();
         reviewStorage.deleteReview(userId, reviewId);
@@ -39,42 +39,23 @@ public class ReviewService {
         return reviewStorage.getReview(reviewId);
     }
 
-    /**
-     * Получение списка отзывов.
-     * Если filmId не указан, возвращаются все отзывы (с лимитом по умолчанию 10),
-     * сортированные по рейтингу полезности (useful) по убыванию.
-     */
     public List<Review> getReviews(Integer filmId, Integer count) {
         int limit = (count != null) ? count : 10;
         return reviewStorage.getReviews(filmId, limit);
     }
 
-    /**
-     * Пользователь ставит лайк отзыву — увеличивается рейтинг useful на 1
-     */
     public void addLike(int reviewId, int userId) {
         reviewStorage.updateReviewUseful(reviewId, 1);
     }
 
-    /**
-     * Пользователь ставит дизлайк отзыву
-     * Если пользователь ранее поставил лайк, то переключение на дизлайк должно уменьшить рейтинг на 2
-     * Здесь реализую именно такое переключение, поэтому вычитаем 2
-     */
     public void addDislike(int reviewId, int userId) {
         reviewStorage.updateReviewUseful(reviewId, -2);
     }
 
-    /**
-     * Пользователь удаляет свой лайк отзыва — уменьшается рейтинг useful на 1
-     */
     public void deleteLike(int reviewId, int userId) {
         reviewStorage.updateReviewUseful(reviewId, -1);
     }
 
-    /**
-     * Пользователь удаляет свой дизлайк отзыва — увеличивается рейтинг useful на 2
-     */
     public void deleteDislike(int reviewId, int userId) {
         reviewStorage.updateReviewUseful(reviewId, 2);
     }

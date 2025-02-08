@@ -21,8 +21,6 @@ public interface FilmStorage {
 
     boolean ratingExists(Integer id);
 
-    boolean genreTry(Integer id);
-
     Collection<Film> getCommonFilms(int userId, int friendId);
 
     Collection<Film> getSearchFilms(String query, String by);
