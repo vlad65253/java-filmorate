@@ -14,11 +14,13 @@ import java.sql.SQLException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.mapping;
 
+@SuppressWarnings("ALL")
 @Repository
 public class DirectorRepository extends BaseRepository<Director> implements DirectorStorage {
     private static final String GET_ALL_DIRECTORS = "SELECT * FROM DIRECTORS";
@@ -40,11 +42,9 @@ public class DirectorRepository extends BaseRepository<Director> implements Dire
     }
 
     public Director getDirectorById(Integer id) {
-        Director director = findOne(GET_DIRECTOR_BY_ID, id);
-        if (director == null) {
-            throw new NotFoundException("Режиссёр с id " + id + " не найден");
-        }
-        return director;
+        return findOne("""
+                SELECT * FROM DIRECTORS WHERE DIRECTOR_ID = ?
+                """, id).get();
     }
 
     public void addDirector(Integer filmId, List<Integer> directorIds) {
@@ -54,6 +54,7 @@ public class DirectorRepository extends BaseRepository<Director> implements Dire
                 ps.setInt(1, filmId);
                 ps.setInt(2, directorIds.get(i));
             }
+
             @Override
             public int getBatchSize() {
                 return directorIds.size();
@@ -110,7 +111,12 @@ public class DirectorRepository extends BaseRepository<Director> implements Dire
     }
 
     // Новый метод для получения режиссёров для конкретного фильма
-    public Collection<Director> getDirectorsByFilm(int filmId) {
-        return findMany(FIND_ALL_BY_FILM_ID_QUERY, filmId);
+    public List<Director> getDirectorsByFilm(int filmId) {
+        return findMany("""
+                SELECT d.DIRECTOR_ID, d.DIRECTOR_NAME 
+                FROM FILM_DIRECTORS fd 
+                JOIN DIRECTORS d ON fd.DIRECTOR_ID = d.DIRECTOR_ID 
+                WHERE fd.FILM_ID = ?", filmId)
+                """, mapper, filmId);
     }
 }

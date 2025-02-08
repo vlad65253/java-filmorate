@@ -10,6 +10,7 @@ import ru.yandex.practicum.filmorate.service.RatingService;
 
 import java.util.Collection;
 
+@SuppressWarnings("ALL")
 @RestController
 @RequestMapping("/mpa")
 @RequiredArgsConstructor
@@ -23,6 +24,6 @@ public class RatingController {
 
     @GetMapping("/{id}")
     public Rating getRatingById(@PathVariable int id) {
-        return ratingService.getRatingById(id);
+        return ratingService.getRatingById(id).get();
     }
 }

@@ -7,6 +7,7 @@ import ru.yandex.practicum.filmorate.dal.RatingRepository;
 import ru.yandex.practicum.filmorate.model.Rating;
 
 import java.util.Collection;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -20,9 +21,8 @@ public class RatingService {
         return ratings;
     }
 
-    public Rating getRatingById(Integer id) {
-        Rating rating = ratingRepository.getRatingById(id);
+    public Optional<Rating> getRatingById(Integer id) {
         log.debug("Получен рейтинг с id: {}", id);
-        return rating;
+        return ratingRepository.getRatingById(id);
     }
 }

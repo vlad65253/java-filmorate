@@ -24,4 +24,6 @@ public interface DirectorStorage {
     Collection<Director> getAllDirectorsByFilmId(Integer id);
 
     Map<Integer, List<Director>> findAllByFilms();
+
+    List<Director> getDirectorsByFilm(int filmId);
 }

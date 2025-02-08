@@ -12,6 +12,7 @@ import ru.yandex.practicum.filmorate.storage.ReviewStorage;
 import jakarta.validation.ValidationException;
 import java.util.List;
 
+@SuppressWarnings("ALL")
 @Repository
 public class ReviewRepository extends BaseRepository<Review> implements ReviewStorage {
 
@@ -69,11 +70,7 @@ public class ReviewRepository extends BaseRepository<Review> implements ReviewSt
 
     @Override
     public Review getReview(int reviewId) {
-        Review review = findOne(SQL_SELECT_REVIEW, reviewId);
-        if (review == null) {
-            throw new NotFoundException("Отзыв с id " + reviewId + " не найден");
-        }
-        return review;
+        return findOne(SQL_SELECT_REVIEW, reviewId).get();
     }
 
     @Override

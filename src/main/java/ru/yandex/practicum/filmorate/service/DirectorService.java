@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+@SuppressWarnings("ALL")
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -48,11 +49,6 @@ public class DirectorService {
     }
 
     public Director updateDirector(Director director) {
-        // Проверяем существование режиссёра
-        getDirectorById(director.getId());
-        if (director.getName() == null || director.getName().trim().isEmpty()) {
-            throw new ValidationException("Имя директора пустое");
-        }
-        return directorRepository.updateDirector(director);
+        return directorRepository.updateDirector(getDirectorById(director.getId()));
     }
 }

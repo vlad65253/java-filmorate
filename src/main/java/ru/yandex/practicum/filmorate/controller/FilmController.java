@@ -42,7 +42,7 @@ public class FilmController {
 
     @GetMapping("/{id}")
     public Film getFilm(@PathVariable int id) {
-        return filmService.getFilm(id);
+        return filmService.getFilmById(id);
     }
 
 //    @GetMapping("/popular")
@@ -74,13 +74,13 @@ public class FilmController {
         return filmService.getCommonFilms(userId, friendId);
     }
 
-    @GetMapping("/popular")
-    public Collection<Film> getPopularFilms(
-            @RequestParam(defaultValue = "10") int count,
-            @RequestParam(required = false) Integer genreId,
-            @RequestParam(required = false) Integer year) {
-        return filmService.getTopFilmsByGenreAndYear(count, genreId, year);
-    }
+//    @GetMapping("/popular")
+//    public Collection<Film> getPopularFilms(
+//            @RequestParam(defaultValue = "10") int count,
+//            @RequestParam(required = false) Integer genreId,
+//            @RequestParam(required = false) Integer year) {
+//        return filmService.getTopFilmsByGenreAndYear(count, genreId, year);
+//    }
 
     @GetMapping("/search")
     public Collection<Film> getSearchFilms(@RequestParam String query,

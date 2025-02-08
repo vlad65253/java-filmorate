@@ -12,6 +12,7 @@ import ru.yandex.practicum.filmorate.storage.UserStorage;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@SuppressWarnings("ALL")
 @Repository
 @Qualifier("userRepository")
 public class UserRepository extends BaseRepository<User> implements UserStorage {
@@ -63,11 +64,7 @@ public class UserRepository extends BaseRepository<User> implements UserStorage 
 
     @Override
     public User getUserById(Integer id) {
-        User user = findOne(GET_USER_QUERY, id);
-        if (user == null) {
-            throw new NotFoundException("Пользователь с id " + id + " не найден");
-        }
-        return user;
+        return findOne(GET_USER_QUERY, id).get();
     }
 
     @Override

@@ -33,7 +33,7 @@ public class GenreService {
         } else {
             throw new IllegalArgumentException("Название жанра не может быть пустым");
         }
-        genreRepository.updateGenre(savedGenre);
+        //genreRepository.updateGenre(savedGenre);
         log.info("Обновлён жанр с ID {}", genre.getId());
         return savedGenre;
     }

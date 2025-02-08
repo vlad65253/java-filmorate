@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.dal;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -10,6 +11,7 @@ import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import java.sql.PreparedStatement;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
@@ -17,12 +19,12 @@ public class BaseRepository<T> {
     protected final JdbcTemplate jdbc;
     protected final RowMapper<T> mapper;
 
-    protected T findOne(String query, Object... params) {
-        List<T> result = jdbc.query(query, mapper, params);
-        if (result.isEmpty()) {
-            throw new NotFoundException("Не удалось найти данные");
+    protected Optional<T> findOne(String query, Object... params) {
+        try {
+            return Optional.ofNullable(jdbc.queryForObject(query, mapper, params));
+        } catch (DataAccessException e) {
+            throw new NotFoundException("Объект не найден.");
         }
-        return result.getFirst();
     }
 
     protected LinkedHashSet<T> streamQuery(String query, Object... params) {

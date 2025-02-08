@@ -7,7 +7,6 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
 import java.util.*;
@@ -19,28 +18,19 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
             VALUES (?, ?, ?, ?, ?)
             """;
     private static final String UPDATE_FILM_QUERY = """
-            UPDATE FILMS 
+            UPDATE FILMS
             SET FILM_NAME = ?, DESCRIPTION = ?, RELEASE_DATE = ?, DURATION = ?, RATING_ID = ?
             WHERE FILM_ID = ?
             """;
     private static final String GET_ALL_FILMS_QUERY = """
-            SELECT f.*, r.RATING_NAME 
-            FROM FILMS f
-            JOIN RATING r ON f.RATING_ID = r.RATING_ID
+            SELECT *
+            FROM FILMS
             """;
     private static final String GET_FILM_QUERY = """
-            SELECT f.*, r.RATING_NAME 
+            SELECT f.*, r.RATING_NAME
             FROM FILMS f
             JOIN RATING r ON f.RATING_ID = r.RATING_ID
             WHERE f.FILM_ID = ?
-            """;
-
-    // Получение жанров для конкретного фильма
-    private static final String GET_GENRES_BY_FILM_QUERY = """
-            SELECT g.GENRE_ID, g.GENRE_NAME
-            FROM FILMS_GENRE fg
-            JOIN GENRE g ON fg.GENRE_ID = g.GENRE_ID
-            WHERE fg.FILM_ID = ?
             """;
 
     private static final String DELETE_FILM_QUERY = "DELETE FROM FILMS WHERE FILM_ID = ?";
@@ -84,7 +74,7 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
             """;
 
     private static final String FIND_FILMS_BY_IDS_SQL = """
-            SELECT f.*, r.RATING_NAME 
+            SELECT f.*, r.RATING_NAME
             FROM FILMS f
             JOIN RATING r ON f.RATING_ID = r.RATING_ID
             WHERE f.FILM_ID IN (%s)
@@ -97,7 +87,7 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
             JOIN RATING r ON f.RATING_ID = r.RATING_ID
             LEFT JOIN LIKE_LIST l ON f.FILM_ID = l.FILM_ID
             LEFT JOIN FILMS_GENRE fg ON f.FILM_ID = fg.FILM_ID
-            WHERE 
+            WHERE
                 (fg.GENRE_ID = ? OR ? IS NULL)
                 AND (EXTRACT(YEAR FROM f.RELEASE_DATE) = ? OR ? IS NULL)
             GROUP BY f.FILM_ID, r.RATING_NAME, f.FILM_NAME, f.DESCRIPTION, f.RELEASE_DATE, f.DURATION, f.RATING_ID
@@ -107,14 +97,14 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
 
     // Поисковые запросы
     private static final String FIND_BY_NAME_QUERY = """
-            SELECT f.*, r.RATING_NAME 
+            SELECT f.*, r.RATING_NAME
             FROM FILMS f
             LEFT JOIN RATING r ON f.RATING_ID = r.RATING_ID
             WHERE LOWER(f.FILM_NAME) LIKE LOWER(?)
             """;
 
     private static final String FIND_BY_DIRECTOR_NAME_QUERY = """
-            SELECT f.*, r.RATING_NAME 
+            SELECT f.*, r.RATING_NAME
             FROM FILMS f
             LEFT JOIN RATING r ON f.RATING_ID = r.RATING_ID
             WHERE f.FILM_ID IN (
@@ -127,7 +117,7 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
 
     // Новый поисковый запрос для случая, когда необходимо искать по названию ИЛИ по режиссёру
     private static final String FIND_BY_DIRECTOR_NAME_OR_FILM_NAME_QUERY = """
-            SELECT f.*, r.RATING_NAME 
+            SELECT f.*, r.RATING_NAME
             FROM FILMS f
             LEFT JOIN RATING r ON f.RATING_ID = r.RATING_ID
             WHERE LOWER(f.FILM_NAME) LIKE LOWER(?)
@@ -140,13 +130,11 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
             """;
 
     private final JdbcTemplate jdbc;
-    private final DirectorRepository directorRepository;
 
     @Autowired
     public FilmRepository(JdbcTemplate jdbc, RowMapper<Film> mapper, DirectorRepository directorRepository) {
         super(jdbc, mapper);
         this.jdbc = jdbc;
-        this.directorRepository = directorRepository;
     }
 
     @Override
@@ -180,24 +168,15 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
     }
 
     @Override
-    public Collection<Film> getFilms() {
-        Collection<Film> films = findMany(GET_ALL_FILMS_QUERY);
-        films.forEach(film -> {
-            film.setGenres(getGenresByFilm(film.getId()));
-            film.setDirectors(directorRepository.getDirectorsByFilm(film.getId()));
-        });
-        return films;
+    public List<Film> getFilms() {
+        return findMany(GET_ALL_FILMS_QUERY);
     }
 
     @Override
-    public Film getFilm(Integer id) {
-        Film film = findOne(GET_FILM_QUERY, id);
-        if (film == null) {
-            throw new NotFoundException("Фильм с id " + id + " не найден");
-        }
-        film.setGenres(getGenresByFilm(id));
-        film.setDirectors(directorRepository.getDirectorsByFilm(id));
-        return film;
+    public Optional<Film> getFilmById(Integer id) {
+        return findOne("""
+                SELECT * FROM FILMS WHERE FILM_ID = ?
+                """, id);
     }
 
     @Override
@@ -212,17 +191,6 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
     public Collection<Film> getTopFilms(Integer count) {
         Collection<Film> films = findMany(QUERY_TOP_FILMS, count);
         films.forEach(film -> {
-            film.setGenres(getGenresByFilm(film.getId()));
-            film.setDirectors(directorRepository.getDirectorsByFilm(film.getId()));
-        });
-        return films;
-    }
-
-    public Collection<Film> getTopFilmsByGenreAndYear(int limit, Integer genreId, Integer year) {
-        Collection<Film> films = findMany(GET_TOP_FILMS_SQL, genreId, genreId, year, year, limit);
-        films.forEach(film -> {
-            film.setGenres(getGenresByFilm(film.getId()));
-            film.setDirectors(directorRepository.getDirectorsByFilm(film.getId()));
         });
         return films;
     }
@@ -230,20 +198,12 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
     @Override
     public Collection<Film> getCommonFilms(int userId, int friendId) {
         Collection<Film> films = findMany(GET_COMMON_FILMS_QUERY, userId, friendId);
-        films.forEach(film -> {
-            film.setGenres(getGenresByFilm(film.getId()));
-            film.setDirectors(directorRepository.getDirectorsByFilm(film.getId()));
-        });
         return films;
     }
 
     @Override
     public Collection<Film> getByDirectorId(int directorId, String sortBy) {
         Collection<Film> films = findMany(FIND_FILMS_BY_DIRECTOR_ID_QUERY, directorId);
-        films.forEach(film -> {
-            film.setGenres(getGenresByFilm(film.getId()));
-            film.setDirectors(directorRepository.getDirectorsByFilm(film.getId()));
-        });
         List<Film> filmList = new ArrayList<>(films);
         if ("year".equalsIgnoreCase(sortBy)) {
             filmList.sort(Comparator.comparing(Film::getReleaseDate));
@@ -272,25 +232,11 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
             throw new ValidationException("Указано неверное значение критерия поиска (by): " + by);
         }
         films.forEach(film -> {
-            film.setGenres(getGenresByFilm(film.getId()));
-            film.setDirectors(directorRepository.getDirectorsByFilm(film.getId()));
         });
         // Сортируем по количеству лайков в порядке убывания
         return films.stream()
                 .sorted(Comparator.comparing(Film::getCountLikes, Comparator.reverseOrder()))
                 .toList();
-    }
-
-    private Set<Genre> getGenresByFilm(long filmId) {
-        return jdbc.query(GET_GENRES_BY_FILM_QUERY, rs -> {
-            Set<Genre> genres = new LinkedHashSet<>();
-            while (rs.next()) {
-                int genreId = rs.getInt("GENRE_ID");
-                String genreName = rs.getString("GENRE_NAME");
-                genres.add(new Genre(genreId, genreName));
-            }
-            return genres;
-        }, filmId);
     }
 
     public boolean ratingExists(Integer ratingId) {

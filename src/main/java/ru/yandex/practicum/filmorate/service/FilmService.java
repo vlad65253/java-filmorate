@@ -4,28 +4,26 @@ import jakarta.validation.ValidationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.filmorate.dal.DirectorRepository;
-import ru.yandex.practicum.filmorate.dal.FilmRepository;
-import ru.yandex.practicum.filmorate.dal.GenreRepository;
-import ru.yandex.practicum.filmorate.dal.LikesRepository;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.storage.UserStorage;
+import ru.yandex.practicum.filmorate.storage.*;
 
-import java.util.Collection;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
+@SuppressWarnings("ALL")
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class FilmService {
 
-    private final FilmRepository filmRepository;
+    private final FilmStorage filmStorage;
     private final UserStorage userStorage;
-    private final GenreRepository genreRepository;
-    private final LikesRepository likesRepository;
-    private final DirectorRepository directorRepository;
+    private final GenreStorage genreStorage;
+    private final LikesStorage likesStorage;
+    private final DirectorStorage directorStorage;
+    private final RatingStorage ratingStorage;
 
     public Film createFilm(Film film) {
         // Проверка входных данных
@@ -39,19 +37,19 @@ public class FilmService {
             throw new ValidationException("Дата релиза не может быть пустой.");
         }
         // Проверяем существование рейтинга МПА
-        if (!filmRepository.ratingExists(film.getMpa().getId())) {
+        if (!filmStorage.ratingExists(film.getMpa().getId())) {
             throw new NotFoundException("Рейтинг МПА с ID " + film.getMpa().getId() + " не найден");
         }
         // Создаем фильм
-        Film createdFilm = filmRepository.createFilm(film);
+        Film createdFilm = filmStorage.createFilm(film);
         log.info("Создан фильм: {}", createdFilm);
         // Если жанры заданы, сохраняем их
         if (film.getGenres() != null && !film.getGenres().isEmpty()) {
-            genreRepository.addGenres(createdFilm, film.getGenres().stream().toList());
+            genreStorage.addGenres(createdFilm, film.getGenres().stream().toList());
         }
         // Если режиссёры заданы, сохраняем их
         if (film.getDirectors() != null && !film.getDirectors().isEmpty()) {
-            directorRepository.addDirector(createdFilm.getId(),
+            directorStorage.addDirector(createdFilm.getId(),
                     film.getDirectors().stream().map(Director::getId).toList());
         }
         return createdFilm;
@@ -62,86 +60,86 @@ public class FilmService {
             throw new NotFoundException("ID фильма не передан.");
         }
         // Проверяем, что фильм существует
-        Film savedFilm = filmRepository.getFilm(filmUpdated.getId());
+        Film savedFilm = filmStorage.getFilmById(filmUpdated.getId()).get();
         // Проверяем наличие рейтинга МПА
-        if (!filmRepository.ratingExists(filmUpdated.getMpa().getId())) {
+        if (!filmStorage.ratingExists(filmUpdated.getMpa().getId())) {
             throw new NotFoundException("Рейтинг МПА с ID " + filmUpdated.getMpa().getId() + " не найден");
         }
         // Обновляем связи с жанрами: удаляем старые и добавляем новые
         if (savedFilm.getGenres() != null) {
-            genreRepository.delGenres(savedFilm.getId());
+            genreStorage.delGenres(savedFilm.getId());
         }
         if (filmUpdated.getGenres() != null && !filmUpdated.getGenres().isEmpty()) {
-            genreRepository.addGenres(savedFilm, filmUpdated.getGenres().stream().toList());
+            genreStorage.addGenres(savedFilm, filmUpdated.getGenres().stream().toList());
         }
         // Обновляем связи с режиссёрами: удаляем старые и добавляем новые
         if (savedFilm.getDirectors() != null) {
-            directorRepository.delDirector(savedFilm.getId());
+            directorStorage.delDirector(savedFilm.getId());
         }
         if (filmUpdated.getDirectors() != null && !filmUpdated.getDirectors().isEmpty()) {
-            directorRepository.addDirector(savedFilm.getId(),
+            directorStorage.addDirector(savedFilm.getId(),
                     filmUpdated.getDirectors().stream().map(Director::getId).toList());
         }
-        Film updatedFilm = filmRepository.updateFilm(filmUpdated);
+        Film updatedFilm = filmStorage.updateFilm(filmUpdated);
         log.info("Обновлён фильм: {}", updatedFilm);
         return updatedFilm;
     }
 
-    public Collection<Film> getFilms() {
-        Collection<Film> films = filmRepository.getFilms();
-        log.debug("Получено фильмов: {}", films.size());
-        return films;
+    public Set<Film> getFilms() {
+        List<Film> filmList = filmStorage.getFilms();
+        for (Film film: filmList) {
+            film.setMpa(ratingStorage.getRatingById(film.getId()).get());
+            film.setGenres(genreStorage.getGenresByFilm(film.getId()));
+            film.setDirectors(directorStorage.getDirectorsByFilm(film.getId()));
+        }
+        return filmList.stream()
+                .sorted(Comparator.comparing(Film::getId))
+                .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
-    public Film getFilm(Integer id) {
-        Film film = filmRepository.getFilm(id);
+    public Film getFilmById(Integer id) {
+        Film film = filmStorage.getFilmById(id).get();
         log.debug("Получен фильм: {}", film);
         return film;
     }
 
     public void deleteFilm(Integer id) {
-        filmRepository.deleteFilm(id);
+        filmStorage.deleteFilm(id);
         log.info("Удалён фильм с id: {}", id);
     }
 
     public Collection<Film> getTopFilms(int count) {
-        Collection<Film> films = filmRepository.getTopFilms(count);
+        Collection<Film> films = filmStorage.getTopFilms(count);
         log.debug("Получены топ {} фильмов", count);
         return films;
     }
 
-    public Collection<Film> getTopFilmsByGenreAndYear(int count, Integer genreId, Integer year) {
-        Collection<Film> films = filmRepository.getTopFilmsByGenreAndYear(count, genreId, year);
-        log.debug("Получены топ фильмы с фильтрами: genreId={}, year={}", genreId, year);
-        return films;
-    }
-
     public Collection<Film> getCommonFilms(int userId, int friendId) {
-        Collection<Film> films = filmRepository.getCommonFilms(userId, friendId);
+        Collection<Film> films = filmStorage.getCommonFilms(userId, friendId);
         log.debug("Получены общие фильмы для пользователей {} и {}", userId, friendId);
         return films;
     }
 
     public Collection<Film> getFilmsByDirector(int directorId, String sortBy) {
-        if (directorRepository.getDirectorById(directorId) == null) {
+        if (directorStorage.getDirectorById(directorId) == null) {
             throw new NotFoundException("Режиссёр с ID " + directorId + " не найден");
         }
-        Collection<Film> films = filmRepository.getByDirectorId(directorId, sortBy);
+        Collection<Film> films = filmStorage.getByDirectorId(directorId, sortBy);
         log.debug("Получены фильмы режиссёра {} с сортировкой: {}", directorId, sortBy);
         return films;
     }
 
     public Collection<Film> getSearchFilms(String query, String by) {
-        Collection<Film> films = filmRepository.getSearchFilms(query, by);
+        Collection<Film> films = filmStorage.getSearchFilms(query, by);
         log.debug("Результаты поиска по query={} и by={}: {}", query, by, films.size());
         return films;
     }
 
-    public Set<Integer> getLikedFilmsByUser(int userId) {
-        Set<Integer> likedFilms = filmRepository.getLikedFilmsByUser(userId);
-        log.debug("Пользователь {} лайкнул фильмы: {}", userId, likedFilms);
-        return likedFilms;
-    }
+//    public Set<Integer> getLikedFilmsByUser(int userId) {
+//        Set<Integer> likedFilms = filmStorage.getLikedFilmsByUser(userId);
+//        log.debug("Пользователь {} лайкнул фильмы: {}", userId, likedFilms);
+//        return likedFilms;
+//    }
 
     /**
      * Добавляет лайк фильму от пользователя.
@@ -149,11 +147,11 @@ public class FilmService {
      */
     public Film likeFilm(Integer filmId, Integer userId) {
         // Проверяем наличие фильма и пользователя
-        Film film = filmRepository.getFilm(filmId);
+        Film film = filmStorage.getFilmById(filmId).get();
         userStorage.getUserById(userId);
-        likesRepository.addLike(filmId, userId);
+        likesStorage.addLike(filmId, userId);
         log.info("Пользователь {} поставил лайк фильму {}", userId, filmId);
-        return filmRepository.getFilm(filmId);
+        return film;
     }
 
     /**
@@ -161,9 +159,9 @@ public class FilmService {
      * Проверяет наличие фильма и пользователя.
      */
     public void delLikeFilm(Integer filmId, Integer userId) {
-        filmRepository.getFilm(filmId);
+        filmStorage.getFilmById(filmId);
         userStorage.getUserById(userId);
-        likesRepository.deleteLike(filmId, userId);
+        likesStorage.deleteLike(filmId, userId);
         log.info("Пользователь {} убрал лайк с фильма {}", userId, filmId);
     }
 }

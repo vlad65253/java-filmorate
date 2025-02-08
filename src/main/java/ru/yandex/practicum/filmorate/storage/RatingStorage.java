@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.storage;
 
 import ru.yandex.practicum.filmorate.model.Rating;
 import java.util.Collection;
+import java.util.Optional;
 
 /**
  * Интерфейс для операций с рейтингами (MPA).
@@ -21,5 +22,5 @@ public interface RatingStorage {
      * @param id идентификатор рейтинга
      * @return рейтинг
      */
-    Rating getRatingById(Integer id);
+    Optional<Rating> getRatingById(Integer id);
 }
