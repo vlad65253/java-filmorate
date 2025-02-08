@@ -28,7 +28,7 @@ public class User {
     @NotNull
     private LocalDate birthday;
     @JsonIgnore
-    private Set<Integer> friends = new HashSet<>();
+    private Set<Integer> friends;
 
     public boolean checkEmail() {
         return email.matches(

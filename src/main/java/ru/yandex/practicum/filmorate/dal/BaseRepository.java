@@ -8,7 +8,9 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 
 import java.sql.PreparedStatement;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 public class BaseRepository<T> {
@@ -21,6 +23,11 @@ public class BaseRepository<T> {
             throw new NotFoundException("Не удалось найти данные");
         }
         return result.getFirst();
+    }
+
+    protected LinkedHashSet<T> streamQuery(String query, Object... params) {
+        return jdbc.queryForStream(query, mapper, params)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     protected List<T> findMany(String query, Object... params) {
