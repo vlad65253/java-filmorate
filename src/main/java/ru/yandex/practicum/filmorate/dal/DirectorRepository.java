@@ -25,10 +25,10 @@ public class DirectorRepository extends BaseRepository<Director> implements Dire
     }
 
     @Override
-    public List<Director> getDirectors() {
-        return findMany("""
+    public Set<Director> getDirectors() {
+        return streamQuery("""
                 SELECT DIRECTOR_ID, DIRECTOR_NAME FROM DIRECTORS
-                """, mapper);
+                """);
     }
 
     @Override
@@ -37,7 +37,7 @@ public class DirectorRepository extends BaseRepository<Director> implements Dire
                 SELECT
                 DIRECTOR_ID,
                 DIRECTOR_NAME
-                FROM DIRECTORS WHERE id = ?
+                FROM DIRECTORS WHERE DIRECTOR_ID = ?
                 """, id);
     }
 
