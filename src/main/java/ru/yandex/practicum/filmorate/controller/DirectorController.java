@@ -14,10 +14,10 @@ import java.util.Collection;
 public class DirectorController {
     private final DirectorService directorService;
 
-    @GetMapping
-    public Collection<Director> getAllGenre() {
-        return directorService.getAllDirectors();
-    }
+//    @GetMapping
+//    public Collection<Director> getAllGenre() {
+//        return directorService.getAllDirectors();
+//    }
 
     @GetMapping("/{id}")
     public Director getGenreById(@PathVariable int id) {
@@ -35,9 +35,9 @@ public class DirectorController {
         return directorService.updateDirector(director);
     }
 
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    @DeleteMapping("/{id}")
-    public void delDirector(@PathVariable("id") int directorId) {
-        directorService.deleteDirector(directorId);
-    }
+//    @ResponseStatus(HttpStatus.NO_CONTENT)
+//    @DeleteMapping("/{id}")
+//    public void delDirector(@PathVariable("id") int directorId) {
+//        directorService.deleteDirector(directorId);
+//    }
 }

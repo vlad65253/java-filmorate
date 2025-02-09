@@ -6,32 +6,29 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dal.GenreRepository;
 import ru.yandex.practicum.filmorate.model.Genre;
 
-import java.util.Collection;
-import java.util.List;
-
+@SuppressWarnings("ALL")
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class GenreService {
     private final GenreRepository genreRepository;
 
-    public Collection<Genre> getAllGenres() {
-        return genreRepository.getAllGenres();
-    }
+//    public Collection<Genre> getAllGenres() {
+//        Collection<Genre> genres = genreRepository.getAllGenres();
+//        log.debug("Получено жанров: {}", genres.size());
+//        return genres;
+//    }
 
     public Genre getGenreById(Integer id) {
-        return genreRepository.getGenreById(id);
+        return genreRepository.getGenreById(id).get();
     }
 
     public Genre update(Genre genre) {
-        Genre savedGenre = genreRepository.getGenreById(genre.getId());
-        if (genre.getName() != null) savedGenre.setName(genre.getName());
-        genreRepository.update(savedGenre);
-        log.info("Обновлен жанр с ID {}", genre.getId());
-        return savedGenre;
+        return genreRepository.getGenreById(genre.getId()).get();
     }
 
-    public void deleteGenre(Integer filmId) {
-        genreRepository.delGenres(filmId);
-    }
+//    public void deleteGenre(Integer filmId) {
+//        genreRepository.delGenres(filmId);
+//        log.info("Удалены жанры для фильма с id: {}", filmId);
+//    }
 }

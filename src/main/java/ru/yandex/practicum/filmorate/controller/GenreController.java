@@ -21,8 +21,8 @@ public class GenreController {
         return genreService.getGenreById(id);
     }
 
-    @GetMapping
-    public Collection<Genre> getAllGenre() {
-        return genreService.getAllGenres();
-    }
+//    @GetMapping
+//    public Collection<Genre> getAllGenre() {
+//        return genreService.getAllGenres();
+//    }
 }

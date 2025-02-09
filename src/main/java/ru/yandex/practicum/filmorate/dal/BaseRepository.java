@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.dal;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -8,19 +9,34 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 
 import java.sql.PreparedStatement;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 public class BaseRepository<T> {
     protected final JdbcTemplate jdbc;
     protected final RowMapper<T> mapper;
 
-    protected T findOne(String query, Object... params) {
-        List<T> result = jdbc.query(query, mapper, params);
-        if (result.isEmpty()) {
-            throw new NotFoundException("Не удалось найти данные");
+    protected Optional<T> findOne(String query, Object... params) {
+        T optional = null;
+        try {
+            optional = jdbc.queryForObject(query, mapper,  params);
+        } catch (DataAccessException e) {
+            throw new NotFoundException("Объект не найден");
         }
-        return result.getFirst();
+        return Optional.ofNullable(optional);
+    }
+
+    protected Set<T> streamQuery(String query, Object... params) {
+        try {
+            return jdbc.queryForStream(query, mapper, params)
+                    .collect(Collectors.toCollection(LinkedHashSet::new));
+        } catch (DataAccessException e) {
+            throw new NotFoundException("Объект не найден.");
+        }
     }
 
     protected List<T> findMany(String query, Object... params) {
@@ -40,16 +56,13 @@ public class BaseRepository<T> {
     protected Integer insert(String query, Object... params) {
         GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
         jdbc.update(con -> {
-            PreparedStatement ps = con
-                    .prepareStatement(query, PreparedStatement.RETURN_GENERATED_KEYS);
+            PreparedStatement ps = con.prepareStatement(query, PreparedStatement.RETURN_GENERATED_KEYS);
             for (int idx = 0; idx < params.length; idx++) {
                 ps.setObject(idx + 1, params[idx]);
             }
             return ps;
         }, keyHolder);
-
         Integer id = keyHolder.getKeyAs(Integer.class);
-
         if (id != null) {
             return id;
         } else {

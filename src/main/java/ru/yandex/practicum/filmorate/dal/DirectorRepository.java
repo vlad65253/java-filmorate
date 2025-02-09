@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.dal;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -9,111 +10,96 @@ import ru.yandex.practicum.filmorate.storage.DirectorStorage;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
-
-import static java.util.stream.Collectors.groupingBy;
-import static java.util.stream.Collectors.mapping;
 
 @Repository
 public class DirectorRepository extends BaseRepository<Director> implements DirectorStorage {
-    private static final String GET_ALL_DIRECTORS = "SELECT * FROM DIRECTORS";
-    private static final String GET_DIRECTOR_BY_ID = "SELECT * FROM DIRECTORS " +
-            "WHERE DIRECTOR_ID = ?";
-    private static final String ADD_DIRECTOR_FOR_DIRECTORS = "INSERT INTO DIRECTORS (DIRECTOR_NAME) VALUES (?)";
 
-    private static final String UPDATE_DIRECTOR_FOR_DIRECTORS = "UPDATE DIRECTORS SET DIRECTOR_NAME = ? WHERE DIRECTOR_ID = ?";
-    private static final String ADD_DIRECTOR_QUERY = "INSERT INTO FILM_DIRECTORS (FILM_ID, DIRECTOR_ID) VALUES (?, ?)";
-    private static final String DEL_DIRECTOR_QUERY = "DELETE FROM FILM_DIRECTORS WHERE FILM_ID = ?";
-    private static final String DEL_DIRECTOR_ID_QUERY = "DELETE FROM DIRECTORS WHERE DIRECTOR_ID = ?";
-    private static final String FIND_ALL_BY_FILM_ID_QUERY = """
-             SELECT fd.DIRECTOR_ID, d.DIRECTOR_NAME FROM FILM_DIRECTORS fd
-             JOIN DIRECTORS d ON fd.DIRECTOR_ID = d.DIRECTOR_ID
-             WHERE FILM_ID = ?
-            """;
-    private static final String FIND_ALL_BY_FILMS = """
-            SELECT fd.FILM_ID, d.*
-            FROM FILM_DIRECTORS fd
-            JOIN DIRECTORS d ON fd.DIRECTOR_ID = d.DIRECTOR_ID
-            """;
+    private final JdbcTemplate jdbc;
 
+    @Autowired
     public DirectorRepository(JdbcTemplate jdbc, RowMapper<Director> mapper) {
         super(jdbc, mapper);
+        this.jdbc = jdbc;
     }
 
-    public Collection<Director> getAllDirectors() {
-        return findMany(GET_ALL_DIRECTORS);
+    @Override
+    public List<Director> getDirectors() {
+        return findMany("""
+                SELECT DIRECTOR_ID, DIRECTOR_NAME FROM DIRECTORS
+                """, mapper);
     }
 
-    public Director getDirectorById(Integer id) {
-        return findOne(GET_DIRECTOR_BY_ID, id);
+    @Override
+    public Optional<Director> getDirectorById(int id) {
+        return findOne("""
+                SELECT
+                DIRECTOR_ID,
+                DIRECTOR_NAME
+                FROM DIRECTORS WHERE id = ?
+                """, id);
     }
 
-    public void addDirector(Integer filmId, List<Integer> directorId) {
-        batchUpdateBase(ADD_DIRECTOR_QUERY, new BatchPreparedStatementSetter() {
-            @Override
-            public void setValues(PreparedStatement ps, int i) throws SQLException {
-                ps.setLong(1, filmId);
-                ps.setLong(2, directorId.get(i));
-            }
-
-            @Override
-            public int getBatchSize() {
-                return directorId.size();
-            }
-        });
-    }
-
-    public void delDirector(long id) {
-        delete(DEL_DIRECTOR_QUERY, id);
-    }
-    public void delDirectorTable(Integer id){
-        delete(DEL_DIRECTOR_ID_QUERY, id);
-    }
-
-    public boolean directorExists(Integer directorId) {
-        Integer count = jdbc.queryForObject(
-                "SELECT COUNT(*) FROM DIRECTORS WHERE DIRECTOR_ID = ?",
-                Integer.class,
-                directorId
-        );
-        return count != null && count > 0;
-    }
-
+    @Override
     public Director createDirector(Director director) {
-        Integer id = insert(ADD_DIRECTOR_FOR_DIRECTORS,
-                director.getName());
+        int id = insert("""
+                INSERT INTO DIRECTORS(DIRECTOR_NAME) VALUES (?)
+                """, director.getName());
         director.setId(id);
         return director;
     }
 
+    @Override
     public Director updateDirector(Director director) {
-        update(UPDATE_DIRECTOR_FOR_DIRECTORS,
-                director.getName(),
-                director.getId());
+        update("""
+                    UPDATE DIRECTORS SET DIRECTOR_NAME = ? WHERE DIRECTOR_ID = ?
+                """, director.getName(), director.getId());
         return director;
     }
 
     @Override
-    public Collection<Director> getAllDirectorsByFilmId(Integer id) {
-        return findMany(FIND_ALL_BY_FILM_ID_QUERY, id);
+    public void deleteDirectorById(int id) {
+        jdbc.update("""
+                DELETE FROM DIRECTORS WHERE DIRECTOR_ID = ?
+                """, id);
     }
 
     @Override
-    public Map<Integer, List<Director>> findAllByFilms() {
-        List<Map<String, Object>> rows = jdbc.queryForList(FIND_ALL_BY_FILMS);
+    public void createDirectorsForFilmById(int filmId, List<Director> directorsId) {
+        batchUpdateBase("""
+                        INSERT INTO DIRECTORS_SAVE(FILM_ID, DIRECTOR_ID)
+                        VALUES (?, ?)
+                        """,
+                new BatchPreparedStatementSetter() {
+                    @SuppressWarnings("NullableProblems")
+                    @Override
+                    public void setValues(PreparedStatement ps, int i) throws SQLException {
+                        ps.setLong(1, filmId);
+                        ps.setLong(2, directorsId.get(i).getId());
+                    }
 
-        System.out.println("DEBUG: Загруженные режиссёры: " + rows);
-
-        return rows.stream().collect(groupingBy(
-                row -> ((Number) row.get("FILM_ID")).intValue(),
-                mapping(row -> Director.builder()
-                        .id((Integer) row.get("DIRECTOR_ID"))
-                        .name((String) row.get("DIRECTOR_NAME")) // ✅ Проверь, что имя колонки совпадает с таблицей
-                        .build(), Collectors.toList())
-        ));
+                    @Override
+                    public int getBatchSize() {
+                        return directorsId.size();
+                    }
+                }
+        );
     }
 
+    @Override
+    public Set<Director> getDirectorsFilmById(int filmId) {
+        return findMany("""
+                SELECT DIRECTOR_ID, DIRECTOR_NAME FROM DIRECTORS WHERE DIRECTOR_ID IN(SELECT DIRECTOR_ID FROM DIRECTORS_SAVE WHERE FILM_ID = ?)
+                """, filmId).stream()
+                .sorted(Comparator.comparing(Director::getId))
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+    }
+
+    @Override
+    public void deleteDirectorsFilmById(int filmId) {
+        delete("""
+                DELETE FROM DIRECTORS_SAVE WHERE FILM_ID = ?
+                """, filmId);
+    }
 }

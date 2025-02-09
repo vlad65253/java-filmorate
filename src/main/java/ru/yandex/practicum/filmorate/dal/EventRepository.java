@@ -11,8 +11,7 @@ import java.util.List;
 @Repository
 public class EventRepository extends BaseRepository<Event> implements EventStorage {
 
-    private static final String SQL_EVENT =
-            "SELECT * FROM EVENTS WHERE USER_ID = ?";
+    private static final String SQL_EVENT = "SELECT * FROM EVENTS WHERE USER_ID = ?";
 
     public EventRepository(JdbcTemplate jdbc, EventRowMapper eventRowMapper) {
         super(jdbc, eventRowMapper);
@@ -23,5 +22,3 @@ public class EventRepository extends BaseRepository<Event> implements EventStora
         return findMany(SQL_EVENT, id);
     }
 }
-
-
