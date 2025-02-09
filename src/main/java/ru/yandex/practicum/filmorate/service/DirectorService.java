@@ -26,7 +26,7 @@ public class DirectorService {
                 .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
-    public Director getDirectorById(long id) {
+    public Director getDirectorById(int id) {
         return directorStorage.getDirectorById(id)
                 .orElseThrow(() -> new NotFoundException("Режиссер не найден."));
     }
@@ -47,17 +47,17 @@ public class DirectorService {
         return directorStorage.updateDirector(director);
     }
 
-    public void deleteDirectorById(long id) {
+    public void deleteDirectorById(int id) {
         directorStorage.getDirectorById(id)
                 .orElseThrow(() -> new ValidationException("Режиссер не найден."));
         directorStorage.deleteDirectorById(id);
     }
 
-    public void createDirectorsForFilmById(long filmId, List<Director> directorsId) {
+    public void createDirectorsForFilmById(int filmId, List<Director> directorsId) {
         directorStorage.createDirectorsForFilmById(filmId, directorsId);
     }
 
-    public LinkedHashSet<Director> getDirectorsFilmById(long filmId) {
+    public Set<Director> getDirectorsFilmById(int filmId) {
         return directorStorage.getDirectorsFilmById(filmId);
     }
 }

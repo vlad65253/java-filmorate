@@ -21,7 +21,7 @@ public class FilmService {
     private final UserStorage userStorage;
     private final GenreStorage genreStorage;
     private final LikesStorage likesStorage;
-    private final DirectorService directorService;
+    private final DirectorStorage directorStorage;
     private final RatingStorage ratingStorage;
 
     public Film createFilm(Film film) {
@@ -43,12 +43,13 @@ public class FilmService {
         Film createdFilm = filmStorage.createFilm(film);
         log.info("Создан фильм: {}", createdFilm);
         // Если жанры заданы, сохраняем их
-//        if (film.getGenres() != null && !film.getGenres().isEmpty()) {
-//            genreStorage.addGenres(createdFilm, film.getGenres().stream().toList());
-//        }
+       if (film.getGenres() != null && !film.getGenres().isEmpty()) {
+           genreStorage.addGenres(createdFilm, film.getGenres().stream().toList());
+       }
         // Если режиссёры заданы, сохраняем их
         if (film.getDirectors() != null && !film.getDirectors().isEmpty()) {
-            directorService.createDirectorsForFilmById(film.getId(), film.getDirectors().stream().toList());
+            directorStorage.createDirectorsForFilmById(film.getId(), film.getDirectors().stream().toList());
+            film.setDirectors(directorStorage.getDirectorsFilmById(film.getId()));
         }
         return createdFilm;
     }
@@ -88,7 +89,7 @@ public class FilmService {
         for (Film film : filmList) {
             film.setMpa(ratingStorage.getRatingById(film.getId()).get());
             film.setGenres(genreStorage.getGenresByFilm(film.getId()));
-            film.setDirectors(directorService.getDirectorsFilmById(film.getId()));
+            film.setDirectors(directorStorage.getDirectorsFilmById(film.getId()));
         }
         return filmList.stream()
                 .sorted(Comparator.comparing(Film::getId))
@@ -118,20 +119,20 @@ public class FilmService {
         return films;
     }
 
-    public Collection<Film> getFilmsByDirector(int directorId, String sortBy) {
-        if (directorService.getDirectorById(directorId) == null) {
-            throw new NotFoundException("Режиссёр с ID " + directorId + " не найден");
-        }
-        Collection<Film> films = filmStorage.getByDirectorId(directorId, sortBy);
-        log.debug("Получены фильмы режиссёра {} с сортировкой: {}", directorId, sortBy);
-        return films;
-    }
+//    public Collection<Film> getFilmsByDirector(int directorId, String sortBy) {
+//        if (directorStorage.getDirectorById(directorId) == null) {
+//            throw new NotFoundException("Режиссёр с ID " + directorId + " не найден");
+//        }
+//        Collection<Film> films = filmStorage.getByDirectorId(directorId, sortBy);
+//        log.debug("Получены фильмы режиссёра {} с сортировкой: {}", directorId, sortBy);
+//        return films;
+//    }
 
-    public Collection<Film> getSearchFilms(String query, String by) {
-        Collection<Film> films = filmStorage.getSearchFilms(query, by);
-        log.debug("Результаты поиска по query={} и by={}: {}", query, by, films.size());
-        return films;
-    }
+//    public Collection<Film> getSearchFilms(String query, String by) {
+//        Collection<Film> films = filmStorage.getSearchFilms(query, by);
+//        log.debug("Результаты поиска по query={} и by={}: {}", query, by, films.size());
+//        return films;
+//    }
 
 //    public Set<Integer> getLikedFilmsByUser(int userId) {
 //        Set<Integer> likedFilms = filmStorage.getLikedFilmsByUser(userId);
@@ -139,10 +140,6 @@ public class FilmService {
 //        return likedFilms;
 //    }
 
-    /**
-     * Добавляет лайк фильму от пользователя.
-     * Проверяет наличие фильма и пользователя.
-     */
     public Film likeFilm(Integer filmId, Integer userId) {
         // Проверяем наличие фильма и пользователя
         Film film = filmStorage.getFilmById(filmId).get();
@@ -152,10 +149,6 @@ public class FilmService {
         return film;
     }
 
-    /**
-     * Удаляет лайк у фильма от пользователя.
-     * Проверяет наличие фильма и пользователя.
-     */
     public void delLikeFilm(Integer filmId, Integer userId) {
         filmStorage.getFilmById(filmId);
         userStorage.getUserById(userId);

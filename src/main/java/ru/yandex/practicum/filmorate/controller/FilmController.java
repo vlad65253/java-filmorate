@@ -62,11 +62,11 @@ public class FilmController {
         filmService.deleteFilm(id);
     }
 
-    @GetMapping("/director/{directorId}")
-    public Collection<Film> getFilmsByDirector(@PathVariable int directorId,
-                                               @RequestParam(defaultValue = "year") String sortBy) {
-        return filmService.getFilmsByDirector(directorId, sortBy);
-    }
+//    @GetMapping("/director/{directorId}")
+//    public Collection<Film> getFilmsByDirector(@PathVariable int directorId,
+//                                               @RequestParam(defaultValue = "year") String sortBy) {
+//        return filmService.getFilmsByDirector(directorId, sortBy);
+//    }
 
     @GetMapping("/common")
     public Collection<Film> getCommonFilms(@RequestParam int userId,
@@ -82,12 +82,12 @@ public class FilmController {
 //        return filmService.getTopFilmsByGenreAndYear(count, genreId, year);
 //    }
 
-    @GetMapping("/search")
-    public Collection<Film> getSearchFilms(@RequestParam String query,
-                                           @RequestParam String by) {
-        if (FilmFilters.from(by) == null) {
-            throw new ValidationException("Указано неверное значение критерия поиска (by)");
-        }
-        return filmService.getSearchFilms(query, by);
-    }
+//    @GetMapping("/search")
+//    public Collection<Film> getSearchFilms(@RequestParam String query,
+//                                           @RequestParam String by) {
+//        if (FilmFilters.from(by) == null) {
+//            throw new ValidationException("Указано неверное значение критерия поиска (by)");
+//        }
+//        return filmService.getSearchFilms(query, by);
+//    }
 }

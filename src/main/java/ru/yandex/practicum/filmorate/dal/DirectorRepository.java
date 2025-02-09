@@ -19,7 +19,7 @@ public class DirectorRepository extends BaseRepository<Director> implements Dire
     private final JdbcTemplate jdbc;
 
     @Autowired
-    public DirectorRepository(JdbcTemplate jdbc, RowMapper<Director> mapper, DirectorRepository directorRepository) {
+    public DirectorRepository(JdbcTemplate jdbc, RowMapper<Director> mapper) {
         super(jdbc, mapper);
         this.jdbc = jdbc;
     }
@@ -27,25 +27,24 @@ public class DirectorRepository extends BaseRepository<Director> implements Dire
     @Override
     public List<Director> getDirectors() {
         return findMany("""
-                SELECT id, name FROM Directors
+                SELECT DIRECTOR_ID, DIRECTOR_NAME FROM DIRECTORS
                 """, mapper);
     }
 
     @Override
-    public Optional<Director> getDirectorById(long id) {
+    public Optional<Director> getDirectorById(int id) {
         return findOne("""
                 SELECT
-                id,
-                name
-                FROM Directors WHERE id = ?
+                DIRECTOR_ID,
+                DIRECTOR_NAME
+                FROM DIRECTORS WHERE id = ?
                 """, id);
     }
 
     @Override
     public Director createDirector(Director director) {
         int id = insert("""
-                INSERT INTO Directors(name)
-                VALUES ?
+                INSERT INTO DIRECTORS(DIRECTOR_NAME) VALUES (?)
                 """, director.getName());
         director.setId(id);
         return director;
@@ -54,25 +53,23 @@ public class DirectorRepository extends BaseRepository<Director> implements Dire
     @Override
     public Director updateDirector(Director director) {
         update("""
-                    UPDATE Directors SET
-                    name = :name
-                    WHERE id = ?
-                """, director.getName());
+                    UPDATE DIRECTORS SET DIRECTOR_NAME = ? WHERE DIRECTOR_ID = ?
+                """, director.getName(), director.getId());
         return director;
     }
 
     @Override
-    public void deleteDirectorById(long id) {
+    public void deleteDirectorById(int id) {
         jdbc.update("""
-                DELETE FROM Directors WHERE id = ?
+                DELETE FROM DIRECTORS WHERE DIRECTOR_ID = ?
                 """, id);
     }
 
     @Override
-    public void createDirectorsForFilmById(long filmId, List<Director> directorsId) {
+    public void createDirectorsForFilmById(int filmId, List<Director> directorsId) {
         batchUpdateBase("""
-                        INSERT INTO Directors_save(film_id, director_id)
-                        VALUES (:film_id, :director_id)
+                        INSERT INTO DIRECTORS_SAVE(FILM_ID, DIRECTOR_ID)
+                        VALUES (?, ?)
                         """,
                 new BatchPreparedStatementSetter() {
                     @SuppressWarnings("NullableProblems")
@@ -91,19 +88,18 @@ public class DirectorRepository extends BaseRepository<Director> implements Dire
     }
 
     @Override
-    public LinkedHashSet<Director> getDirectorsFilmById(long filmId) {
+    public Set<Director> getDirectorsFilmById(int filmId) {
         return findMany("""
-                SELECT id, name FROM Directors WHERE id IN(
-                SELECT director_id FROM Directors_save WHERE film_id = ?)
-                """, filmId, mapper).stream()
+                SELECT DIRECTOR_ID, DIRECTOR_NAME FROM DIRECTORS WHERE DIRECTOR_ID IN(SELECT DIRECTOR_ID FROM DIRECTORS_SAVE WHERE FILM_ID = ?)
+                """, filmId).stream()
                 .sorted(Comparator.comparing(Director::getId))
                 .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     @Override
-    public void deleteDirectorsFilmById(long filmId) {
+    public void deleteDirectorsFilmById(int filmId) {
         update("""
-                DELETE FROM Directors_save WHERE film_id = :film_id
+                DELETE FROM Directors_save WHERE film_id = ?
                 """, filmId);
     }
 }

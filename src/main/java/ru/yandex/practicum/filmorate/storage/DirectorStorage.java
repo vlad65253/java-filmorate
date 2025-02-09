@@ -34,17 +34,17 @@ public interface DirectorStorage {
 
     List<Director> getDirectors();
 
-    Optional<Director> getDirectorById(long id);
+    Optional<Director> getDirectorById(int id);
 
     Director createDirector(Director director);
 
     Director updateDirector(Director director);
 
-    void deleteDirectorById(long id);
+    void deleteDirectorById(int id);
 
-    void createDirectorsForFilmById(long filmId, List<Director> directors);
+    void createDirectorsForFilmById(int filmId, List<Director> directors);
 
-    LinkedHashSet<Director> getDirectorsFilmById(long filmId);
+    Set<Director> getDirectorsFilmById(int filmId);
 
-    void deleteDirectorsFilmById(long filmId);
+    void deleteDirectorsFilmById(int filmId);
 }

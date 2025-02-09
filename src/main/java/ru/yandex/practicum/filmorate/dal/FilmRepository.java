@@ -132,7 +132,7 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
     private final JdbcTemplate jdbc;
 
     @Autowired
-    public FilmRepository(JdbcTemplate jdbc, RowMapper<Film> mapper, DirectorRepository directorRepository) {
+    public FilmRepository(JdbcTemplate jdbc, RowMapper<Film> mapper) {
         super(jdbc, mapper);
         this.jdbc = jdbc;
     }
@@ -206,43 +206,43 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
         return films;
     }
 
-    @Override
-    public Collection<Film> getByDirectorId(int directorId, String sortBy) {
-        Collection<Film> films = findMany(FIND_FILMS_BY_DIRECTOR_ID_QUERY, directorId);
-        List<Film> filmList = new ArrayList<>(films);
-        if ("year".equalsIgnoreCase(sortBy)) {
-            filmList.sort(Comparator.comparing(Film::getReleaseDate));
-        } else if ("likes".equalsIgnoreCase(sortBy)) {
-            filmList.sort(Comparator.comparingInt(Film::getCountLikes).reversed());
-        }
-        return filmList;
-    }
+//    @Override
+//    public Collection<Film> getByDirectorId(int directorId, String sortBy) {
+//        Collection<Film> films = findMany(FIND_FILMS_BY_DIRECTOR_ID_QUERY, directorId);
+//        List<Film> filmList = new ArrayList<>(films);
+//        if ("year".equalsIgnoreCase(sortBy)) {
+//            filmList.sort(Comparator.comparing(Film::getReleaseDate));
+//        } else if ("likes".equalsIgnoreCase(sortBy)) {
+//            filmList.sort(Comparator.comparingInt(Film::getCountLikes).reversed());
+//        }
+//        return filmList;
+//    }
 
-    @Override
-    public Collection<Film> getSearchFilms(String query, String by) {
-        Collection<Film> films;
-        String[] byParts = by.split(",");
-        if (byParts.length == 1) {
-            if ("title".equalsIgnoreCase(byParts[0])) {
-                films = findMany(FIND_BY_NAME_QUERY, "%" + query + "%");
-            } else if ("director".equalsIgnoreCase(byParts[0])) {
-                films = findMany(FIND_BY_DIRECTOR_NAME_QUERY, "%" + query + "%");
-            } else {
-                throw new ValidationException("Указано неверное значение критерия поиска (by) для поиска фильма: " + by);
-            }
-        } else if (byParts.length >= 2) {
-            // При наличии двух (и более) критериев ищем фильмы, удовлетворяющие хотя бы одному условию (ИЛИ)
-            films = findMany(FIND_BY_DIRECTOR_NAME_OR_FILM_NAME_QUERY, "%" + query + "%", "%" + query + "%");
-        } else {
-            throw new ValidationException("Указано неверное значение критерия поиска (by): " + by);
-        }
-        films.forEach(film -> {
-        });
-        // Сортируем по количеству лайков в порядке убывания
-        return films.stream()
-                .sorted(Comparator.comparing(Film::getCountLikes, Comparator.reverseOrder()))
-                .toList();
-    }
+//    @Override
+//    public Collection<Film> getSearchFilms(String query, String by) {
+//        Collection<Film> films;
+//        String[] byParts = by.split(",");
+//        if (byParts.length == 1) {
+//            if ("title".equalsIgnoreCase(byParts[0])) {
+//                films = findMany(FIND_BY_NAME_QUERY, "%" + query + "%");
+//            } else if ("director".equalsIgnoreCase(byParts[0])) {
+//                films = findMany(FIND_BY_DIRECTOR_NAME_QUERY, "%" + query + "%");
+//            } else {
+//                throw new ValidationException("Указано неверное значение критерия поиска (by) для поиска фильма: " + by);
+//            }
+//        } else if (byParts.length >= 2) {
+//            // При наличии двух (и более) критериев ищем фильмы, удовлетворяющие хотя бы одному условию (ИЛИ)
+//            films = findMany(FIND_BY_DIRECTOR_NAME_OR_FILM_NAME_QUERY, "%" + query + "%", "%" + query + "%");
+//        } else {
+//            throw new ValidationException("Указано неверное значение критерия поиска (by): " + by);
+//        }
+//        films.forEach(film -> {
+//        });
+//        // Сортируем по количеству лайков в порядке убывания
+//        return films.stream()
+//                .sorted(Comparator.comparing(Film::getCountLikes, Comparator.reverseOrder()))
+//                .toList();
+//    }
 
     public boolean ratingExists(Integer ratingId) {
         Integer count = jdbc.queryForObject(QUERY_EXISTS_RATING, Integer.class, ratingId);

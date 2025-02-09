@@ -19,11 +19,11 @@ public interface FilmStorage {
 
     Collection<Film> getTopFilms(Integer count);
 
-    Collection<Film> getByDirectorId(int directorId, String sortBy);
+//    Collection<Film> getByDirectorId(int directorId, String sortBy);
 
     boolean ratingExists(Integer id);
 
     Collection<Film> getCommonFilms(int userId, int friendId);
 
-    Collection<Film> getSearchFilms(String query, String by);
+//    Collection<Film> getSearchFilms(String query, String by);
 }
