@@ -172,9 +172,7 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
 
     @Override
     public List<Film> getFilms() {
-        return findMany("""
-                SELECT * FROM FILMS
-                """);
+        return findMany("SELECT * FROM FILMS");
     }
 
     @Override

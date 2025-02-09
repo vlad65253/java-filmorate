@@ -26,7 +26,7 @@ public class BaseRepository<T> {
             throw new NotFoundException("Объект не найден.");
         }
     }
-
+//Добавить исключение
     protected LinkedHashSet<T> streamQuery(String query, Object... params) {
         return jdbc.queryForStream(query, mapper, params)
                 .collect(Collectors.toCollection(LinkedHashSet::new));

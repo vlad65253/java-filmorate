@@ -44,7 +44,7 @@ public class GenreRepository extends BaseRepository<Genre> implements GenreStora
     @Override
     public void createGenresForFilmById(long filmId, List<Genre> genresId) {
         batchUpdateBase("""
-                        INSERT INTO GENRES_SAVE(FILM_ID, GENRE_ID)
+                        INSERT INTO GENRES_SAVE(FILM_ID, GENRES_ID)
                         VALUES (?, ?)
                         """,
                 new BatchPreparedStatementSetter() {
@@ -63,13 +63,10 @@ public class GenreRepository extends BaseRepository<Genre> implements GenreStora
         );
     }
 
-//    @Override
-//    public void deleteGenreForFilmById(long id) {
-//        MapSqlParameterSource params = new MapSqlParameterSource();
-//        params.addValue("film_id", id);
-//        String sqlQuery = "DELETE FROM GENRES_SAVE WHERE FILM_ID = :film_id";
-//        jdbc.update(sqlQuery, params);
-//    }
+    @Override
+    public void deleteGenreForFilmById(long id) {
+        delete("DELETE FROM GENRES_SAVE WHERE FILM_ID = ?", id);
+    }
 
     @Override
     public Set<Genre> getGenresFilmById(long genreId) {

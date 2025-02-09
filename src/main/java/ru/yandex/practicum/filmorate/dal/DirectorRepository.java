@@ -98,8 +98,8 @@ public class DirectorRepository extends BaseRepository<Director> implements Dire
 
     @Override
     public void deleteDirectorsFilmById(int filmId) {
-        update("""
-                DELETE FROM Directors_save WHERE film_id = ?
+        delete("""
+                DELETE FROM DIRECTORS_SAVE WHERE FILM_ID = ?
                 """, filmId);
     }
 }

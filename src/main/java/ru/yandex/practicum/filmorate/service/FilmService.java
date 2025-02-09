@@ -41,49 +41,54 @@ public class FilmService {
         }
         // Создаем фильм
         Film createdFilm = filmStorage.createFilm(film);
-        log.info("Создан фильм: {}", createdFilm);
-        // Если жанры заданы, сохраняем их
-        if (film.getGenres() != null && !film.getGenres().isEmpty()) {
+        film.setMpa(ratingStorage.getRatingById(film.getId()).get());
+
+        if (film.getGenres() != null) {
             genreStorage.createGenresForFilmById(film.getId(), film.getGenres().stream().toList());
             film.setGenres(genreStorage.getGenresFilmById(film.getId()));
         }
-        // Если режиссёры заданы, сохраняем их
-        if (film.getDirectors() != null && !film.getDirectors().isEmpty()) {
+
+        if (film.getDirectors() != null) {
             directorStorage.createDirectorsForFilmById(film.getId(), film.getDirectors().stream().toList());
             film.setDirectors(directorStorage.getDirectorsFilmById(film.getId()));
         }
         return createdFilm;
     }
 
-//    public Film updateFilm(Film filmUpdated) {
-//        if (filmUpdated.getId() == null) {
-//            throw new NotFoundException("ID фильма не передан.");
-//        }
-//        // Проверяем, что фильм существует
-//        Film savedFilm = filmStorage.getFilmById(filmUpdated.getId()).get();
-//        // Проверяем наличие рейтинга МПА
-//        if (!filmStorage.ratingExists(filmUpdated.getMpa().getId())) {
-//            throw new NotFoundException("Рейтинг МПА с ID " + filmUpdated.getMpa().getId() + " не найден");
-//        }
-//        // Обновляем связи с жанрами: удаляем старые и добавляем новые
-//        if (savedFilm.getGenres() != null) {
-//            genreStorage.delGenres(savedFilm.getId());
-//        }
-//        if (filmUpdated.getGenres() != null && !filmUpdated.getGenres().isEmpty()) {
-//            genreStorage.addGenres(savedFilm, filmUpdated.getGenres().stream().toList());
-//        }
-//        // Обновляем связи с режиссёрами: удаляем старые и добавляем новые
-//        if (savedFilm.getDirectors() != null) {
-//            directorServis.delDirector(savedFilm.getId());
-//        }
-//        if (filmUpdated.getDirectors() != null && !filmUpdated.getDirectors().isEmpty()) {
-//            directorServis.addDirector(savedFilm.getId(),
-//                    filmUpdated.getDirectors().stream().map(Director::getId).toList());
-//        }
-//        Film updatedFilm = filmStorage.updateFilm(filmUpdated);
-//        log.info("Обновлён фильм: {}", updatedFilm);
-//        return updatedFilm;
-//    }
+    public Film updateFilm(Film film) {
+
+        // Проверка входных данных
+        filmStorage.getFilmById(film.getId());
+        if (film.getName() == null || film.getName().isBlank()) {
+            throw new ValidationException("Название фильма не может быть пустым.");
+        }
+        if (film.getDescription() == null || film.getDescription().isBlank() || film.getDescription().length() > 200) {
+            throw new ValidationException("Описание фильма не может быть пустым или превышать 200 символов.");
+        }
+        if (film.getReleaseDate() == null) {
+            throw new ValidationException("Дата релиза не может быть пустой.");
+        }
+        // Проверяем существование рейтинга МПА
+        if (!filmStorage.ratingExists(film.getMpa().getId())) {
+            throw new NotFoundException("Рейтинг МПА с ID " + film.getMpa().getId() + " не найден");
+        }
+        // Обновление фильма
+        Film createdFilm = filmStorage.updateFilm(film);
+        film.setMpa(ratingStorage.getRatingById(film.getId()).get());
+
+        if (film.getGenres() != null) {
+            genreStorage.deleteGenreForFilmById(film.getId());
+            genreStorage.createGenresForFilmById(film.getId(), film.getGenres().stream().toList());
+            film.setGenres(genreStorage.getGenresFilmById(film.getId()));
+        }
+
+        if (film.getDirectors() != null) {
+            directorStorage.deleteDirectorsFilmById(film.getId());
+            directorStorage.createDirectorsForFilmById(film.getId(), film.getDirectors().stream().toList());
+            film.setDirectors(directorStorage.getDirectorsFilmById(film.getId()));
+        }
+        return film;
+    }
 
     public Set<Film> getFilms() {
         List<Film> filmList = filmStorage.getFilms();
