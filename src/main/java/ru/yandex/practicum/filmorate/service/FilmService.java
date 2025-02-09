@@ -43,9 +43,10 @@ public class FilmService {
         Film createdFilm = filmStorage.createFilm(film);
         log.info("Создан фильм: {}", createdFilm);
         // Если жанры заданы, сохраняем их
-       if (film.getGenres() != null && !film.getGenres().isEmpty()) {
-           genreStorage.addGenres(createdFilm, film.getGenres().stream().toList());
-       }
+        if (film.getGenres() != null && !film.getGenres().isEmpty()) {
+            genreStorage.createGenresForFilmById(film.getId(), film.getGenres().stream().toList());
+            film.setGenres(genreStorage.getGenresFilmById(film.getId()));
+        }
         // Если режиссёры заданы, сохраняем их
         if (film.getDirectors() != null && !film.getDirectors().isEmpty()) {
             directorStorage.createDirectorsForFilmById(film.getId(), film.getDirectors().stream().toList());
@@ -88,7 +89,7 @@ public class FilmService {
         List<Film> filmList = filmStorage.getFilms();
         for (Film film : filmList) {
             film.setMpa(ratingStorage.getRatingById(film.getId()).get());
-            film.setGenres(genreStorage.getGenresByFilm(film.getId()));
+            film.setGenres(genreStorage.getGenresFilmById(film.getId()));
             film.setDirectors(directorStorage.getDirectorsFilmById(film.getId()));
         }
         return filmList.stream()
