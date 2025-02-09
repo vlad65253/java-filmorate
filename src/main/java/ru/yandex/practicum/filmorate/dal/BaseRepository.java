@@ -21,11 +21,13 @@ public class BaseRepository<T> {
     protected final RowMapper<T> mapper;
 
     protected Optional<T> findOne(String query, Object... params) {
+        T optional = null;
         try {
-            return Optional.ofNullable(jdbc.queryForObject(query, mapper, params));
+            optional = jdbc.queryForObject(query, mapper,  params);
         } catch (DataAccessException e) {
-            throw new NotFoundException("Объект не найден.");
+            throw new NotFoundException("Объект не найден");
         }
+        return Optional.ofNullable(optional);
     }
 
     protected Set<T> streamQuery(String query, Object... params) {

@@ -40,6 +40,9 @@ public class FilmService {
         if (!filmStorage.ratingExists(film.getMpa().getId())) {
             throw new NotFoundException("Рейтинг МПА с ID " + film.getMpa().getId() + " не найден");
         }
+        if(film.getGenres() != null) {
+            film.getGenres().forEach(g -> genreStorage.getGenreById(g.getId()));
+        }
         // Создаем фильм
         Film createdFilm = filmStorage.createFilm(film);
         film.setMpa(ratingStorage.getRatingById(film.getMpa().getId()).get());
@@ -73,6 +76,7 @@ public class FilmService {
         if (!filmStorage.ratingExists(film.getMpa().getId())) {
             throw new NotFoundException("Рейтинг МПА с ID " + film.getMpa().getId() + " не найден");
         }
+        film.getGenres().forEach(g -> genreStorage.getGenreById(g.getId()));
         // Обновление фильма
         Film createdFilm = filmStorage.updateFilm(film);
         film.setMpa(ratingStorage.getRatingById(film.getMpa().getId()).get());
@@ -109,7 +113,6 @@ public class FilmService {
     }
 
     public Set<Film> getTopFilms(Integer count, Integer genreId, Integer year) {
-        System.out.println(count + " " + genreId + " " + year);
         if (genreId != null && year != null) {
             return filmStorage.getTopFilms().stream()
                     .filter(f -> f.getGenres().stream()
@@ -131,9 +134,7 @@ public class FilmService {
                     .limit(count)
                     .collect(Collectors.toCollection(LinkedHashSet::new));
         } else {
-            return filmStorage.getTopFilms().stream()
-                    .limit(count)
-                    .collect(Collectors.toCollection(LinkedHashSet::new));
+            return filmStorage.getTopFilms();
         }
     }
 

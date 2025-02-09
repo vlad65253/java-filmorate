@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.dal;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -37,7 +38,7 @@ public class GenreRepository extends BaseRepository<Genre> implements GenreStora
                 SELECT
                 GENRE_ID,
                 GENRE_NAME
-                FROM GENRES WHERE id = ?
+                FROM GENRES WHERE GENRE_ID = ?
                 """, id);
     }
 
