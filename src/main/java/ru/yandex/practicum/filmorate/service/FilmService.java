@@ -111,24 +111,29 @@ public class FilmService {
     public Set<Film> getTopFilms(Integer count, Integer genreId, Integer year) {
         System.out.println(count + " " + genreId + " " + year);
         if (genreId != null && year != null) {
-            return filmStorage.getTopFilms(count).stream()
+            return filmStorage.getTopFilms().stream()
                     .filter(f -> f.getGenres().stream()
                             .map(Genre::getId)
                             .anyMatch(i -> genreId == i))
                     .filter(y -> y.getReleaseDate().getYear() == year)
+                    .limit(count)
                     .collect(Collectors.toCollection(LinkedHashSet::new));
         } else if (genreId != null) {
-            return filmStorage.getTopFilms(count).stream()
+            return filmStorage.getTopFilms().stream()
                     .filter(f -> f.getGenres().stream()
                             .map(Genre::getId)
                             .anyMatch(i -> genreId == i))
+                    .limit(count)
                     .collect(Collectors.toCollection(LinkedHashSet::new));
         } else if (year != null) {
-            return filmStorage.getTopFilms(count).stream()
+            return filmStorage.getTopFilms().stream()
                     .filter(y -> y.getReleaseDate().getYear() == year)
+                    .limit(count)
                     .collect(Collectors.toCollection(LinkedHashSet::new));
         } else {
-            return filmStorage.getTopFilms(count);
+            return filmStorage.getTopFilms().stream()
+                    .limit(count)
+                    .collect(Collectors.toCollection(LinkedHashSet::new));
         }
     }
 

@@ -12,6 +12,7 @@ import java.sql.PreparedStatement;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
@@ -26,10 +27,14 @@ public class BaseRepository<T> {
             throw new NotFoundException("Объект не найден.");
         }
     }
-//Добавить исключение
-    protected LinkedHashSet<T> streamQuery(String query, Object... params) {
-        return jdbc.queryForStream(query, mapper, params)
-                .collect(Collectors.toCollection(LinkedHashSet::new));
+
+    protected Set<T> streamQuery(String query, Object... params) {
+        try {
+            return jdbc.queryForStream(query, mapper, params)
+                    .collect(Collectors.toCollection(LinkedHashSet::new));
+        } catch (DataAccessException e) {
+            throw new NotFoundException("Объект не найден.");
+        }
     }
 
     protected List<T> findMany(String query, Object... params) {

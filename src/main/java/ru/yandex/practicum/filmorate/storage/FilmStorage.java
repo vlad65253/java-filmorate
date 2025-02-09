@@ -18,7 +18,7 @@ public interface FilmStorage {
 
     void deleteFilm(Integer id);
 
-    Set<Film> getTopFilms(int count);
+    Set<Film> getTopFilms();
 
 //    Collection<Film> getByDirectorId(int directorId, String sortBy);
 

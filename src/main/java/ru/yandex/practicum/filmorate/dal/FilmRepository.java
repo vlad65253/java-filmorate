@@ -191,15 +191,14 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
     }
 
     @Override
-    public Set<Film> getTopFilms(int count) {
+    public Set<Film> getTopFilms() {
         return streamQuery("""
-                SELECT F.*, COUNT(L.FILM_ID) AS count
+                SELECT F.FILM_ID, F.FILM_NAME, F.DESCRIPTION, F.RELEASE_DATE, F.DURATION, F.RATING_ID, COUNT(L.FILM_ID) AS count
                 FROM FILMS AS F
                 JOIN LIKE_LIST AS L ON L.FILM_ID = F.FILM_ID
                 GROUP BY F.FILM_ID
                 ORDER BY count DESC
-                LIMIT ?
-                """, count);
+                """);
     }
 
     @Override
