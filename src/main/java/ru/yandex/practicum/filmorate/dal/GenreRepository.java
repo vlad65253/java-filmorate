@@ -44,7 +44,7 @@ public class GenreRepository extends BaseRepository<Genre> implements GenreStora
     @Override
     public void createGenresForFilmById(long filmId, List<Genre> genresId) {
         batchUpdateBase("""
-                        INSERT INTO GENRES_SAVE(FILM_ID, GENRES_ID)
+                        INSERT INTO GENRES_SAVE(FILM_ID, GENRE_ID)
                         VALUES (?, ?)
                         """,
                 new BatchPreparedStatementSetter() {
