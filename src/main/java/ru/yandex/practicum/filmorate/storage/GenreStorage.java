@@ -8,11 +8,11 @@ public interface GenreStorage {
 
     List<Genre> getGenres();
 
-    Optional<Genre> getGenreById(long id);
+    Optional<Genre> getGenreById(int id);
 
-    void createGenresForFilmById(long filmId, List<Genre> genres);
+    void createGenresForFilmById(int filmId, List<Genre> genres);
 
-    void deleteGenreForFilmById(long id);
+    void deleteGenreForFilmById(int id);
 
-    Set<Genre> getGenresFilmById(long id);
+    Set<Genre> getGenresFilmById(int id);
 }

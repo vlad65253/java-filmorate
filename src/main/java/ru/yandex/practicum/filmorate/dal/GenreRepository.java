@@ -32,7 +32,7 @@ public class GenreRepository extends BaseRepository<Genre> implements GenreStora
     }
 
     @Override
-    public Optional<Genre> getGenreById(long id) {
+    public Optional<Genre> getGenreById(int id) {
         return findOne("""
                 SELECT
                 GENRE_ID,
@@ -42,7 +42,7 @@ public class GenreRepository extends BaseRepository<Genre> implements GenreStora
     }
 
     @Override
-    public void createGenresForFilmById(long filmId, List<Genre> genresId) {
+    public void createGenresForFilmById(int filmId, List<Genre> genresId) {
         batchUpdateBase("""
                         INSERT INTO GENRES_SAVE(FILM_ID, GENRE_ID)
                         VALUES (?, ?)
@@ -64,15 +64,15 @@ public class GenreRepository extends BaseRepository<Genre> implements GenreStora
     }
 
     @Override
-    public void deleteGenreForFilmById(long id) {
+    public void deleteGenreForFilmById(int id) {
         delete("DELETE FROM GENRES_SAVE WHERE FILM_ID = ?", id);
     }
 
     @Override
-    public Set<Genre> getGenresFilmById(long genreId) {
+    public Set<Genre> getGenresFilmById(int id) {
         return findMany("""
                 SELECT GENRE_ID, GENRE_NAME FROM GENRES WHERE GENRE_ID IN(SELECT GENRE_ID FROM GENRES_SAVE WHERE FILM_ID = ?)
-                """, genreId).stream()
+                """, id).stream()
                 .sorted(Comparator.comparing(Genre::getId))
                 .collect(Collectors.toCollection(LinkedHashSet::new));
     }

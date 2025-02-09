@@ -41,7 +41,7 @@ public class FilmService {
         }
         // Создаем фильм
         Film createdFilm = filmStorage.createFilm(film);
-        film.setMpa(ratingStorage.getRatingById(film.getId()).get());
+        film.setMpa(ratingStorage.getRatingById(film.getMpa().getId()).get());
 
         if (film.getGenres() != null) {
             genreStorage.createGenresForFilmById(film.getId(), film.getGenres().stream().toList());
@@ -74,7 +74,7 @@ public class FilmService {
         }
         // Обновление фильма
         Film createdFilm = filmStorage.updateFilm(film);
-        film.setMpa(ratingStorage.getRatingById(film.getId()).get());
+        film.setMpa(ratingStorage.getRatingById(film.getMpa().getId()).get());
 
         if (film.getGenres() != null) {
             genreStorage.deleteGenreForFilmById(film.getId());
@@ -91,13 +91,7 @@ public class FilmService {
     }
 
     public Set<Film> getFilms() {
-        List<Film> filmList = filmStorage.getFilms();
-        for (Film film : filmList) {
-            film.setMpa(ratingStorage.getRatingById(film.getId()).get());
-            film.setGenres(genreStorage.getGenresFilmById(film.getId()));
-            film.setDirectors(directorStorage.getDirectorsFilmById(film.getId()));
-        }
-        return filmList.stream()
+        return filmStorage.getFilms().stream()
                 .sorted(Comparator.comparing(Film::getId))
                 .collect(Collectors.toCollection(LinkedHashSet::new));
     }
