@@ -40,11 +40,11 @@ public class FilmService {
         if (!filmStorage.ratingExists(film.getMpa().getId())) {
             throw new NotFoundException("Рейтинг МПА с ID " + film.getMpa().getId() + " не найден");
         }
-        if(film.getGenres() != null) {
+        if(film.getGenres() != null && !film.getGenres().isEmpty()) {
             film.getGenres().forEach(g -> genreStorage.getGenreById(g.getId()));
         }
         // Создаем фильм
-        Film createdFilm = filmStorage.createFilm(film);
+        filmStorage.createFilm(film);
         film.setMpa(ratingStorage.getRatingById(film.getMpa().getId()).get());
 
         if (film.getGenres() != null) {
@@ -56,7 +56,7 @@ public class FilmService {
             directorStorage.createDirectorsForFilmById(film.getId(), film.getDirectors().stream().toList());
             film.setDirectors(directorStorage.getDirectorsFilmById(film.getId()));
         }
-        return createdFilm;
+        return filmStorage.getFilmById(film.getId()).get();
     }
 
     public Film updateFilm(Film film) {
@@ -76,14 +76,19 @@ public class FilmService {
         if (!filmStorage.ratingExists(film.getMpa().getId())) {
             throw new NotFoundException("Рейтинг МПА с ID " + film.getMpa().getId() + " не найден");
         }
-        film.getGenres().forEach(g -> genreStorage.getGenreById(g.getId()));
+        if(film.getGenres() != null && !film.getGenres().isEmpty()) {
+            film.getGenres().forEach(g -> genreStorage.getGenreById(g.getId()));
+        }
         // Обновление фильма
-        Film createdFilm = filmStorage.updateFilm(film);
+        filmStorage.updateFilm(film);
         film.setMpa(ratingStorage.getRatingById(film.getMpa().getId()).get());
 
         if (film.getGenres() != null) {
             genreStorage.deleteGenreForFilmById(film.getId());
             genreStorage.createGenresForFilmById(film.getId(), film.getGenres().stream().toList());
+            film.setGenres(genreStorage.getGenresFilmById(film.getId()));
+        } else{
+            genreStorage.deleteGenreForFilmById(film.getId());
             film.setGenres(genreStorage.getGenresFilmById(film.getId()));
         }
 
@@ -91,8 +96,11 @@ public class FilmService {
             directorStorage.deleteDirectorsFilmById(film.getId());
             directorStorage.createDirectorsForFilmById(film.getId(), film.getDirectors().stream().toList());
             film.setDirectors(directorStorage.getDirectorsFilmById(film.getId()));
+        } else{
+            directorStorage.deleteDirectorsFilmById(film.getId());
+            film.setDirectors(directorStorage.getDirectorsFilmById(film.getId()));
         }
-        return film;
+        return filmStorage.getFilmById(film.getId()).get();
     }
 
     public Set<Film> getFilms() {

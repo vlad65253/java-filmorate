@@ -73,7 +73,8 @@ public class GenreRepository extends BaseRepository<Genre> implements GenreStora
     public Set<Genre> getGenresFilmById(int id) {
         return findMany("""
                 SELECT GENRE_ID, GENRE_NAME FROM GENRES WHERE GENRE_ID IN(SELECT GENRE_ID FROM GENRES_SAVE WHERE FILM_ID = ?)
-                """, id).stream()
+                """, id)
+                .stream()
                 .sorted(Comparator.comparing(Genre::getId))
                 .collect(Collectors.toCollection(LinkedHashSet::new));
     }
