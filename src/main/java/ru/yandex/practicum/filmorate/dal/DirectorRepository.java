@@ -91,7 +91,8 @@ public class DirectorRepository extends BaseRepository<Director> implements Dire
     public Set<Director> getDirectorsFilmById(int filmId) {
         return findMany("""
                 SELECT DIRECTOR_ID, DIRECTOR_NAME FROM DIRECTORS WHERE DIRECTOR_ID IN(SELECT DIRECTOR_ID FROM DIRECTORS_SAVE WHERE FILM_ID = ?)
-                """, filmId).stream()
+                """, filmId)
+                .stream()
                 .sorted(Comparator.comparing(Director::getId))
                 .collect(Collectors.toCollection(LinkedHashSet::new));
     }

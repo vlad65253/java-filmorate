@@ -87,11 +87,17 @@ public class FilmService {
             genreStorage.deleteGenreForFilmById(film.getId());
             genreStorage.createGenresForFilmById(film.getId(), film.getGenres().stream().toList());
             film.setGenres(genreStorage.getGenresFilmById(film.getId()));
+        } else{
+            genreStorage.deleteGenreForFilmById(film.getId());
+            film.setGenres(genreStorage.getGenresFilmById(film.getId()));
         }
 
         if (film.getDirectors() != null) {
             directorStorage.deleteDirectorsFilmById(film.getId());
             directorStorage.createDirectorsForFilmById(film.getId(), film.getDirectors().stream().toList());
+            film.setDirectors(directorStorage.getDirectorsFilmById(film.getId()));
+        } else{
+            directorStorage.deleteDirectorsFilmById(film.getId());
             film.setDirectors(directorStorage.getDirectorsFilmById(film.getId()));
         }
         return filmStorage.getFilmById(film.getId()).get();
