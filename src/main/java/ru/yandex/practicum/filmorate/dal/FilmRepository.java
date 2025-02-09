@@ -191,11 +191,15 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
     }
 
     @Override
-    public Collection<Film> getTopFilms(Integer count) {
-        Collection<Film> films = findMany(QUERY_TOP_FILMS, count);
-        films.forEach(film -> {
-        });
-        return films;
+    public Set<Film> getTopFilms(int count) {
+        return streamQuery("""
+                SELECT F.*, COUNT(L.FILM_ID) AS count
+                FROM FILMS AS F
+                JOIN LIKE_LIST AS L ON L.FILM_ID = F.FILM_ID
+                GROUP BY F.FILM_ID
+                ORDER BY count DESC
+                LIMIT ?
+                """, count);
     }
 
     @Override

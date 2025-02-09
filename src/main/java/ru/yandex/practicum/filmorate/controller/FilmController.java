@@ -11,6 +11,7 @@ import ru.yandex.practicum.filmorate.model.enums.FilmFilters;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
 import java.util.Collection;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/films")
@@ -30,10 +31,10 @@ public class FilmController {
         return filmService.updateFilm(film);
     }
 
-    @PutMapping("/{id}/like/{userId}")
-    public Film likingFilm(@PathVariable int id, @PathVariable int userId) {
-        return filmService.likeFilm(id, userId);
-    }
+//    @PutMapping("/{id}/like/{userId}")
+//    public Film likingFilm(@PathVariable int id, @PathVariable int userId) {
+//        return filmService.likeFilm(id, userId);
+//    }
 
     @GetMapping
     public Collection<Film> getFilms() {
@@ -50,11 +51,11 @@ public class FilmController {
 //        return filmService.getTopFilms(count);
 //    }
 
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    @DeleteMapping("/{id}/like/{userId}")
-    public void deleteLike(@PathVariable int id, @PathVariable int userId) {
-        filmService.delLikeFilm(id, userId);
-    }
+//    @ResponseStatus(HttpStatus.NO_CONTENT)
+//    @DeleteMapping("/{id}/like/{userId}")
+//    public void deleteLike(@PathVariable int id, @PathVariable int userId) {
+//        filmService.delLikeFilm(id, userId);
+//    }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
@@ -68,19 +69,21 @@ public class FilmController {
 //        return filmService.getFilmsByDirector(directorId, sortBy);
 //    }
 
-    @GetMapping("/common")
-    public Collection<Film> getCommonFilms(@RequestParam int userId,
-                                           @RequestParam int friendId) {
-        return filmService.getCommonFilms(userId, friendId);
-    }
-
-//    @GetMapping("/popular")
-//    public Collection<Film> getPopularFilms(
-//            @RequestParam(defaultValue = "10") int count,
-//            @RequestParam(required = false) Integer genreId,
-//            @RequestParam(required = false) Integer year) {
-//        return filmService.getTopFilmsByGenreAndYear(count, genreId, year);
+//    @GetMapping("/common")
+//    public Collection<Film> getCommonFilms(@RequestParam int userId,
+//                                           @RequestParam int friendId) {
+//        return filmService.getCommonFilms(userId, friendId);
 //    }
+
+    /*GET /films/popular?count={limit}&genreId={genreId}&year={year}*/
+    @GetMapping("/popular")
+    public Set<Film> getPopularFilms(
+            @RequestParam(defaultValue = "10") Integer count,
+            @RequestParam(required = false) Integer genreId,
+            @RequestParam(required = false) Integer year
+    ) {
+        return filmService.getTopFilms(count, genreId, year);
+    }
 
 //    @GetMapping("/search")
 //    public Collection<Film> getSearchFilms(@RequestParam String query,

@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.storage.*;
 
 import java.util.*;
@@ -107,17 +108,36 @@ public class FilmService {
         log.info("Удалён фильм с id: {}", id);
     }
 
-    public Collection<Film> getTopFilms(int count) {
-        Collection<Film> films = filmStorage.getTopFilms(count);
-        log.debug("Получены топ {} фильмов", count);
-        return films;
+    public Set<Film> getTopFilms(Integer count, Integer genreId, Integer year) {
+        System.out.println(count + " " + genreId + " " + year);
+        if (genreId != null && year != null) {
+            return filmStorage.getTopFilms(count).stream()
+                    .filter(f -> f.getGenres().stream()
+                            .map(Genre::getId)
+                            .anyMatch(i -> genreId == i))
+                    .filter(y -> y.getReleaseDate().getYear() == year)
+                    .collect(Collectors.toCollection(LinkedHashSet::new));
+        } else if (genreId != null) {
+            return filmStorage.getTopFilms(count).stream()
+                    .filter(f -> f.getGenres().stream()
+                            .map(Genre::getId)
+                            .anyMatch(i -> genreId == i))
+                    .collect(Collectors.toCollection(LinkedHashSet::new));
+        } else if (year != null) {
+            return filmStorage.getTopFilms(count).stream()
+                    .filter(y -> y.getReleaseDate().getYear() == year)
+                    .collect(Collectors.toCollection(LinkedHashSet::new));
+        } else {
+            return filmStorage.getTopFilms(count);
+        }
     }
 
-    public Collection<Film> getCommonFilms(int userId, int friendId) {
-        Collection<Film> films = filmStorage.getCommonFilms(userId, friendId);
-        log.debug("Получены общие фильмы для пользователей {} и {}", userId, friendId);
-        return films;
-    }
+
+//    public Collection<Film> getCommonFilms(int userId, int friendId) {
+//        Collection<Film> films = filmStorage.getCommonFilms(userId, friendId);
+//        log.debug("Получены общие фильмы для пользователей {} и {}", userId, friendId);
+//        return films;
+//    }
 
 //    public Collection<Film> getFilmsByDirector(int directorId, String sortBy) {
 //        if (directorStorage.getDirectorById(directorId) == null) {
@@ -140,19 +160,18 @@ public class FilmService {
 //        return likedFilms;
 //    }
 
-    public Film likeFilm(Integer filmId, Integer userId) {
-        // Проверяем наличие фильма и пользователя
-        Film film = filmStorage.getFilmById(filmId).get();
-        userStorage.getUserById(userId);
-        likesStorage.addLike(filmId, userId);
-        log.info("Пользователь {} поставил лайк фильму {}", userId, filmId);
-        return film;
-    }
-
-    public void delLikeFilm(Integer filmId, Integer userId) {
-        filmStorage.getFilmById(filmId);
-        userStorage.getUserById(userId);
-        likesStorage.deleteLike(filmId, userId);
-        log.info("Пользователь {} убрал лайк с фильма {}", userId, filmId);
-    }
+//    public Film likeFilm(Integer filmId, Integer userId) {
+//        // Проверяем наличие фильма и пользователя
+//        Film film = filmStorage.getFilmById(filmId).get();
+//        userStorage.getUserById(userId);
+//        likesStorage.addLike(filmId, userId);
+//        log.info("Пользователь {} поставил лайк фильму {}", userId, filmId);
+//        return film;
+//    }
+//
+//    public void delLikeFilm(Integer filmId, Integer userId) {
+//        filmStorage.getFilmById(filmId);
+//        userStorage.getUserById(userId);
+//        likesStorage.deleteLike(filmId, userId);
+//        log.info("Пользователь {} убрал лайк с фильма {}", userId, filmId);
 }
