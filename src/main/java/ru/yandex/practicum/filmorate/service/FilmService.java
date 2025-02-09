@@ -43,6 +43,9 @@ public class FilmService {
         if(film.getGenres() != null && !film.getGenres().isEmpty()) {
             film.getGenres().forEach(g -> genreStorage.getGenreById(g.getId()));
         }
+        if(film.getDirectors() != null && !film.getDirectors().isEmpty()) {
+            film.getDirectors().forEach(g -> directorStorage.getDirectorById(g.getId()));
+        }
         // Создаем фильм
         filmStorage.createFilm(film);
         film.setMpa(ratingStorage.getRatingById(film.getMpa().getId()).get());
@@ -60,7 +63,6 @@ public class FilmService {
     }
 
     public Film updateFilm(Film film) {
-
         // Проверка входных данных
         filmStorage.getFilmById(film.getId());
         if (film.getName() == null || film.getName().isBlank()) {
@@ -78,6 +80,9 @@ public class FilmService {
         }
         if(film.getGenres() != null && !film.getGenres().isEmpty()) {
             film.getGenres().forEach(g -> genreStorage.getGenreById(g.getId()));
+        }
+        if(film.getDirectors() != null && !film.getDirectors().isEmpty()) {
+            film.getDirectors().forEach(g -> directorStorage.getDirectorById(g.getId()));
         }
         // Обновление фильма
         filmStorage.updateFilm(film);
