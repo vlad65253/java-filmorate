@@ -259,8 +259,5 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
         return findMany(sql, filmIds.toArray());
     }
 
-    public Set<Integer> getLikedFilmsByUser(Integer userId) {
-        String sql = "SELECT FILM_ID FROM LIKE_LIST WHERE USER_ID = ?";
-        return new HashSet<>(jdbc.queryForList(sql, Integer.class, userId));
-    }
+
 }

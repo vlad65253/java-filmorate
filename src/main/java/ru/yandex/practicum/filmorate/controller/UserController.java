@@ -68,10 +68,10 @@ public class UserController {
         userService.deleteUser(id);
     }
 
-    @GetMapping("/{id}/recommendations")
-    public Collection<Film> getRecommendations(@PathVariable Integer id) {
-        return userService.getRecommendations(id);
-    }
+//    @GetMapping("/{id}/recommendations")
+//    public Collection<Film> getRecommendations(@PathVariable Integer id) {
+//        return userService.getRecommendations(id);
+//    }
 
     /*GET /users/{id}/feed*/
     @GetMapping("/{id}/feed")
