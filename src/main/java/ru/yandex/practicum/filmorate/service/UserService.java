@@ -74,20 +74,20 @@ public class UserService {
         return friendshipRepository.getCommonFriends(firstId, secondId);
     }
 
-    public Collection<Film> getRecommendations(Integer userId) {
-        Set<Integer> userLikedFilms = filmRepository.getLikedFilmsByUser(userId);
-        Map<Integer, Long> commonLikesCount = userRepository.findUsersWithCommonLikes(userLikedFilms, userId);
-        Integer similarUserId = commonLikesCount.entrySet().stream()
-                .max(Map.Entry.comparingByValue())
-                .map(Map.Entry::getKey)
-                .orElse(null);
-        if (similarUserId == null) {
-            return Collections.emptyList();
-        }
-        Set<Integer> similarUserLikedFilms = filmRepository.getLikedFilmsByUser(similarUserId);
-        similarUserLikedFilms.removeAll(userLikedFilms);
-        return filmRepository.findFilmsByIds(similarUserLikedFilms);
-    }
+//    public Collection<Film> getRecommendations(Integer userId) {
+//        Set<Integer> userLikedFilms = filmRepository.getLikedFilmsByUser(userId);
+//        Map<Integer, Long> commonLikesCount = userRepository.findUsersWithCommonLikes(userLikedFilms, userId);
+//        Integer similarUserId = commonLikesCount.entrySet().stream()
+//                .max(Map.Entry.comparingByValue())
+//                .map(Map.Entry::getKey)
+//                .orElse(null);
+//        if (similarUserId == null) {
+//            return Collections.emptyList();
+//        }
+//        Set<Integer> similarUserLikedFilms = filmRepository.getLikedFilmsByUser(similarUserId);
+//        similarUserLikedFilms.removeAll(userLikedFilms);
+//        return filmRepository.findFilmsByIds(similarUserLikedFilms);
+//    }
 
     public Set<Event> getFeedUserById(Integer id) {
         return eventStorage.getFeedUserById(id).stream()

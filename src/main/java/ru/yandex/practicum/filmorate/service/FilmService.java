@@ -152,11 +152,39 @@ public class FilmService {
     }
 
 
-//    public Collection<Film> getCommonFilms(int userId, int friendId) {
-//        Collection<Film> films = filmStorage.getCommonFilms(userId, friendId);
-//        log.debug("Получены общие фильмы для пользователей {} и {}", userId, friendId);
-//        return films;
-//    }
+    public Collection<Film> getCommonFilms(int userId, int friendId) {
+        // Проверка существования пользователей (метод getUserById выбросит исключение, если пользователь не найден)
+        userStorage.getUserById(userId);
+        userStorage.getUserById(friendId);
+
+        // Получаем наборы ID фильмов, которые лайкнули оба пользователя
+        Set<Integer> userLikedFilms = likesStorage.getLikedFilmsByUser(userId);
+        Set<Integer> friendLikedFilms = likesStorage.getLikedFilmsByUser(friendId);
+
+        // Вычисляем пересечение наборов
+        userLikedFilms.retainAll(friendLikedFilms);
+
+        if (userLikedFilms.isEmpty()) {
+            log.info("Нет общих фильмов для пользователей {} и {}", userId, friendId);
+            return Collections.emptyList();
+        }
+
+        // Получаем фильмы по ID из пересечения без использования findFilmsByIds:
+        List<Film> commonFilms = userLikedFilms.stream()
+                .map(filmId -> filmStorage.getFilmById(filmId).get())
+                .collect(Collectors.toList());
+
+        // Сортируем фильмы по количеству лайков (популярности) по убыванию
+        List<Film> sortedFilms = commonFilms.stream()
+                .sorted((f1, f2) -> Integer.compare(
+                        likesStorage.getLikeCountForFilm(f2.getId()),
+                        likesStorage.getLikeCountForFilm(f1.getId())
+                ))
+                .collect(Collectors.toList());
+
+        log.debug("Получены общие фильмы для пользователей {} и {}: {}", userId, friendId, sortedFilms);
+        return sortedFilms;
+    }
 
 //    public Collection<Film> getFilmsByDirector(int directorId, String sortBy) {
 //        if (directorStorage.getDirectorById(directorId) == null) {
@@ -179,18 +207,18 @@ public class FilmService {
 //        return likedFilms;
 //    }
 
-//    public Film likeFilm(Integer filmId, Integer userId) {
-//        // Проверяем наличие фильма и пользователя
-//        Film film = filmStorage.getFilmById(filmId).get();
-//        userStorage.getUserById(userId);
-//        likesStorage.addLike(filmId, userId);
-//        log.info("Пользователь {} поставил лайк фильму {}", userId, filmId);
-//        return film;
-//    }
-//
-//    public void delLikeFilm(Integer filmId, Integer userId) {
-//        filmStorage.getFilmById(filmId);
-//        userStorage.getUserById(userId);
-//        likesStorage.deleteLike(filmId, userId);
-//        log.info("Пользователь {} убрал лайк с фильма {}", userId, filmId);
+    public Film likeFilm(Integer filmId, Integer userId) {
+        Film film = filmStorage.getFilmById(filmId).get();
+        userStorage.getUserById(userId);
+        likesStorage.addLike(filmId, userId);
+        log.info("Пользователь {} поставил лайк фильму {}", userId, filmId);
+        return filmStorage.getFilmById(filmId).get();
+    }
+
+    public void delLikeFilm(Integer filmId, Integer userId) {
+        filmStorage.getFilmById(filmId).get();
+        userStorage.getUserById(userId);
+        likesStorage.deleteLike(filmId, userId);
+        log.info("Пользователь {} убрал лайк с фильма {}", userId, filmId);
+    }
 }
