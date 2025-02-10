@@ -252,12 +252,15 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
 
     public Collection<Film> findFilmsByIds(Set<Integer> filmIds) {
         if (filmIds.isEmpty()) {
-            return Collections.emptyList();
+            return Collections.emptyList();  // Сразу выходим, если список пуст
         }
+
         String placeholders = String.join(",", Collections.nCopies(filmIds.size(), "?"));
         String sql = String.format(FIND_FILMS_BY_IDS_SQL, placeholders);
+
         return findMany(sql, filmIds.toArray());
     }
+
 
     public Set<Integer> getLikedFilmsByUser(Integer userId) {
         String sql = "SELECT FILM_ID FROM LIKE_LIST WHERE USER_ID = ?";
