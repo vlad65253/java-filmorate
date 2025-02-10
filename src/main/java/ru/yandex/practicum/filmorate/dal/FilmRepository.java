@@ -39,7 +39,7 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
 
     @Override
     public Film updateFilm(Film filmUpdated) {
-        int updatedRows = jdbc.update("""
+        update("""
                         UPDATE FILMS
                         SET FILM_NAME = ?, DESCRIPTION = ?, RELEASE_DATE = ?, DURATION = ?, RATING_ID = ?
                         WHERE FILM_ID = ?
@@ -50,9 +50,6 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
                 filmUpdated.getDuration(),
                 filmUpdated.getMpa().getId(),
                 filmUpdated.getId());
-        if (updatedRows == 0) {
-            throw new NotFoundException("Фильм с id " + filmUpdated.getId() + " не найден");
-        }
         return filmUpdated;
     }
 
@@ -62,14 +59,14 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
     }
 
     @Override
-    public Film getFilmById(Integer id) {
+    public Film getFilmById(int id) {
         return findOne("""
                 SELECT * FROM FILMS WHERE FILM_ID = ?
                 """, id).get();
     }
 
     @Override
-    public void deleteFilm(Integer filmId) {
+    public void deleteFilm(int filmId) {
         int deletedRows = jdbc.update("DELETE FROM FILMS WHERE FILM_ID = ?", filmId);
         if (deletedRows == 0) {
             throw new NotFoundException("Фильм с id " + filmId + " не найден");

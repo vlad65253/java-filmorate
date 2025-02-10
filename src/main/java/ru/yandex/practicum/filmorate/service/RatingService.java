@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.model.Rating;
 import ru.yandex.practicum.filmorate.storage.RatingStorage;
 
-import java.util.Collection;
+import java.util.List;
 
 @Slf4j
 @Service
@@ -14,13 +14,13 @@ import java.util.Collection;
 public class RatingService {
     private final RatingStorage ratingStorage;
 
-    public Collection<Rating> getAllRating() {
-        Collection<Rating> ratings = ratingStorage.getAllRatings();
+    public List<Rating> getAllRating() {
+        List<Rating> ratings = ratingStorage.getAllRatings();
         log.debug("Получено рейтингов: {}", ratings.size());
         return ratings;
     }
 
-    public Rating getRatingById(Integer id) {
+    public Rating getRatingById(int id) {
         log.debug("Получен рейтинг с id: {}", id);
         return ratingStorage.getRatingById(id);
     }

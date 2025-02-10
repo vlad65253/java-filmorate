@@ -1,8 +1,11 @@
 package ru.yandex.practicum.filmorate.service;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.dal.status.EventOperation;
+import ru.yandex.practicum.filmorate.dal.status.EventType;
 import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
@@ -21,56 +24,58 @@ public class UserService {
     private final LikesStorage likesStorage;
     private final FilmStorage filmStorage;
 
-    public User createUser(User user) {
+    public User createUser(@Valid User user) {
         if (user.getName() == null || user.getName().isBlank()) {
             user.setName(user.getLogin());
         }
         return userStorage.createUser(user);
     }
 
-    public User updateUser(User updateUser) {
+    public User updateUser(@Valid User updateUser) {
         getUserById(updateUser.getId());
         return userStorage.updateUser(updateUser);
     }
 
-    public Collection<User> getUsers() {
+    public List<User> getUsers() {
         return userStorage.getUsers();
     }
 
-    public User getUserById(Integer id) {
+    public User getUserById(int id) {
         return userStorage.getUserById(id);
     }
 
-    public void deleteUser(Integer id) {
+    public void deleteUser(int id) {
         userStorage.deleteUser(id);
     }
 
-    public void addFriend(Integer userId, Integer friendId) {
+    public void addFriend(int userId, int friendId) {
         getUserById(userId);
         getUserById(friendId);
         friendshipStorage.addFriend(userId, friendId);
         log.info("Пользователь {} добавил в друзья {}", userId, friendId);
+        eventStorage.addEvent(userId, EventType.FRIEND, EventOperation.ADD, friendId);
     }
 
-    public void deleteFriend(Integer userId, Integer friendId) {
+    public void deleteFriend(int userId, int friendId) {
         getUserById(userId);
         getUserById(friendId);
         friendshipStorage.deleteFriend(userId, friendId);
         log.info("Пользователь {} удалил из друзей {}", userId, friendId);
+        eventStorage.addEvent(userId, EventType.FRIEND, EventOperation.REMOVE, friendId);
     }
 
-    public Collection<User> getFriends(Integer userId) {
+    public List<User> getFriends(int userId) {
         getUserById(userId);
         return friendshipStorage.getAllUserFriends(userId);
     }
 
-    public Collection<User> getCommonFriend(Integer firstId, Integer secondId) {
+    public List<User> getCommonFriend(int firstId, int secondId) {
         getUserById(firstId);
         getUserById(secondId);
         return friendshipStorage.getCommonFriends(firstId, secondId);
     }
 
-    public Collection<Film> getRecommendations(Integer userId) {
+    public List<Film> getRecommendations(int userId) {
         Set<Integer> userLikedFilms = likesStorage.getLikedFilmsByUser(userId);
         if (userLikedFilms.isEmpty()) {
             log.info("Пользователь с id {} не поставил ни одного лайка, рекомендации отсутствуют", userId);
@@ -103,7 +108,7 @@ public class UserService {
         }
 
         List<Film> recommendedFilms = similarUserLikedFilms.stream()
-                .map(filmId -> filmStorage.getFilmById(filmId))
+                .map(filmStorage::getFilmById)
                 .toList();
 
         List<Film> sortedFilms = recommendedFilms.stream()
@@ -111,14 +116,14 @@ public class UserService {
                         likesStorage.getLikeCountForFilm(f2.getId()),
                         likesStorage.getLikeCountForFilm(f1.getId())
                 ))
-                .collect(Collectors.toList());
+                .collect(Collectors.toCollection(LinkedList::new));
 
         log.debug("Рекомендации для пользователя {} на основе предпочтений пользователя {}: {}",
                 userId, similarUserId, sortedFilms);
         return sortedFilms;
     }
 
-    public Map<Integer, Long> findUsersWithCommonLikes(Set<Integer> filmIds, Integer userId) {
+    public Map<Integer, Long> findUsersWithCommonLikes(Set<Integer> filmIds, int userId) {
         if (filmIds.isEmpty()) {
             return Collections.emptyMap();
         }
@@ -141,7 +146,7 @@ public class UserService {
         return commonLikesCount;
     }
 
-    public Set<Event> getFeedUserById(Integer id) {
+    public Set<Event> getFeedUserById(int id) {
         return eventStorage.getFeedUserById(id).stream()
                 .sorted(Comparator.comparing(Event::getUserId))
                 .collect(Collectors.toCollection(LinkedHashSet::new));

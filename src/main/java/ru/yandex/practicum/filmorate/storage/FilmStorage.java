@@ -12,9 +12,9 @@ public interface FilmStorage {
 
     List<Film> getFilms();
 
-    Film getFilmById(Integer id);
+    Film getFilmById(int id);
 
-    void deleteFilm(Integer id);
+    void deleteFilm(int id);
 
     boolean ratingExists(Integer id);
 

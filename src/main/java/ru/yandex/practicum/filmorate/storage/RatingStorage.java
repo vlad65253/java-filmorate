@@ -7,5 +7,5 @@ public interface RatingStorage {
 
     List<Rating> getAllRatings();
 
-    Rating getRatingById(Integer id);
+    Rating getRatingById(int id);
 }

@@ -53,12 +53,12 @@ public class UserRepository extends BaseRepository<User> implements UserStorage 
     }
 
     @Override
-    public User getUserById(Integer id) {
+    public User getUserById(int id) {
         return findOne("SELECT * FROM USERS WHERE USER_ID = ?", id).get();
     }
 
     @Override
-    public void deleteUser(Integer id) {
+    public void deleteUser(int id) {
         boolean deleted = delete("DELETE FROM USERS WHERE USER_ID = ?", id);
         if (!deleted) {
             throw new NotFoundException("Пользователь с id " + id + " не найден");

@@ -8,7 +8,6 @@ import ru.yandex.practicum.filmorate.storage.GenreStorage;
 
 import java.util.List;
 
-@SuppressWarnings("ALL")
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -21,7 +20,7 @@ public class GenreService {
         return genres;
     }
 
-    public Genre getGenreById(Integer id) {
+    public Genre getGenreById(int id) {
         return genreStorage.getGenreById(id);
     }
 

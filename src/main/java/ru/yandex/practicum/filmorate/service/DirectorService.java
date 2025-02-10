@@ -1,9 +1,9 @@
 package ru.yandex.practicum.filmorate.service;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.storage.DirectorStorage;
 
@@ -28,18 +28,12 @@ public class DirectorService {
         return directorStorage.getDirectorById(id);
     }
 
-    public Director createDirector(Director director) {
-        if (director.getName().isBlank()) {
-            throw new ValidationException("Поле name не может быть пустым.");
-        }
+    public Director createDirector(@Valid Director director) {
         return directorStorage.createDirector(director);
     }
 
-    public Director updateDirector(Director director) {
+    public Director updateDirector(@Valid Director director) {
         directorStorage.getDirectorById(director.getId());
-        if (director.getName().isBlank()) {
-            throw new ValidationException("Поле name не может быть пустым.");
-        }
         return directorStorage.updateDirector(director);
     }
 
