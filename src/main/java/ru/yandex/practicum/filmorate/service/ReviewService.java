@@ -51,7 +51,7 @@ public class ReviewService {
 
     // Получение отзыва по ID
     public Review getReviewById(int reviewId) {
-        return reviewStorage.getReviewById(reviewId).get();
+        return reviewStorage.getReviewById(reviewId);
     }
 
     // Получение списка отзывов

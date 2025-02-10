@@ -8,7 +8,7 @@ public interface DirectorStorage {
 
     Set<Director> getDirectors();
 
-    Optional<Director> getDirectorById(int id);
+    Director getDirectorById(int id);
 
     Director createDirector(Director director);
 

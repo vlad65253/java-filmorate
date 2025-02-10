@@ -32,13 +32,13 @@ public class DirectorRepository extends BaseRepository<Director> implements Dire
     }
 
     @Override
-    public Optional<Director> getDirectorById(int id) {
+    public Director getDirectorById(int id) {
         return findOne("""
                 SELECT
                 DIRECTOR_ID,
                 DIRECTOR_NAME
                 FROM DIRECTORS WHERE DIRECTOR_ID = ?
-                """, id);
+                """, id).get();
     }
 
     @Override

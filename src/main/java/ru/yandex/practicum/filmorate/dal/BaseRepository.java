@@ -9,10 +9,7 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 
 import java.sql.PreparedStatement;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
@@ -21,9 +18,9 @@ public class BaseRepository<T> {
     protected final RowMapper<T> mapper;
 
     protected Optional<T> findOne(String query, Object... params) {
-        T optional = null;
+        T optional;
         try {
-            optional = jdbc.queryForObject(query, mapper,  params);
+            optional = jdbc.queryForObject(query, mapper, params);
         } catch (DataAccessException e) {
             throw new NotFoundException("Объект не найден");
         }

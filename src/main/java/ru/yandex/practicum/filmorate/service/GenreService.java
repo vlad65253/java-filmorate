@@ -3,8 +3,8 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.filmorate.dal.GenreRepository;
 import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.storage.GenreStorage;
 
 import java.util.List;
 
@@ -13,19 +13,19 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class GenreService {
-    private final GenreRepository genreRepository;
+    private final GenreStorage genreStorage;
 
     public List<Genre> getAllGenres() {
-        List<Genre> genres = genreRepository.getGenres();
+        List<Genre> genres = genreStorage.getGenres();
         log.debug("Получено жанров: {}", genres.size());
         return genres;
     }
 
     public Genre getGenreById(Integer id) {
-        return genreRepository.getGenreById(id).get();
+        return genreStorage.getGenreById(id);
     }
 
     public Genre update(Genre genre) {
-        return genreRepository.getGenreById(genre.getId()).get();
+        return genreStorage.getGenreById(genre.getId());
     }
 }

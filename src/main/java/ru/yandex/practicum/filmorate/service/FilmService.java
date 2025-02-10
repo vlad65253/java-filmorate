@@ -39,15 +39,17 @@ public class FilmService {
         if (!filmStorage.ratingExists(film.getMpa().getId())) {
             throw new NotFoundException("Рейтинг МПА с ID " + film.getMpa().getId() + " не найден");
         }
-        if(film.getGenres() != null && !film.getGenres().isEmpty()) {
+
+        if (film.getGenres() != null && !film.getGenres().isEmpty()) {
             film.getGenres().forEach(g -> genreStorage.getGenreById(g.getId()));
         }
-        if(film.getDirectors() != null && !film.getDirectors().isEmpty()) {
+
+        if (film.getDirectors() != null && !film.getDirectors().isEmpty()) {
             film.getDirectors().forEach(g -> directorStorage.getDirectorById(g.getId()));
         }
         // Создаем фильм
         filmStorage.createFilm(film);
-        film.setMpa(ratingStorage.getRatingById(film.getMpa().getId()).get());
+        film.setMpa(ratingStorage.getRatingById(film.getMpa().getId()));
 
         if (film.getGenres() != null) {
             genreStorage.createGenresForFilmById(film.getId(), film.getGenres().stream().toList());
@@ -58,14 +60,12 @@ public class FilmService {
             directorStorage.createDirectorsForFilmById(film.getId(), film.getDirectors().stream().toList());
             film.setDirectors(directorStorage.getDirectorsFilmById(film.getId()));
         }
-        return filmStorage.getFilmById(film.getId()).get();
+        return filmStorage.getFilmById(film.getId());
     }
 
     public Film updateFilm(Film film) {
         // Проверка существования фильма (метод getFilmById выбросит исключение, если фильм не найден)
-        filmStorage.getFilmById(film.getId())
-                .orElseThrow(() -> new NotFoundException("Фильм с id " + film.getId() + " не найден"));
-
+        filmStorage.getFilmById(film.getId());
         if (film.getName() == null || film.getName().isBlank()) {
             throw new ValidationException("Название фильма не может быть пустым.");
         }
@@ -104,10 +104,10 @@ public class FilmService {
 
         // Обновляем основные данные фильма
         filmStorage.updateFilm(film);
-        film.setMpa(ratingStorage.getRatingById(film.getMpa().getId()).get());
+        film.setMpa(ratingStorage.getRatingById(film.getMpa().getId()));
 
         // Возвращаем обновлённый фильм
-        return filmStorage.getFilmById(film.getId()).get();
+        return filmStorage.getFilmById(film.getId());
     }
 
     public Set<Film> getFilms() {
@@ -117,7 +117,7 @@ public class FilmService {
     }
 
     public Film getFilmById(Integer id) {
-        Film film = filmStorage.getFilmById(id).get();
+        Film film = filmStorage.getFilmById(id);
         log.debug("Получен фильм: {}", film);
         return film;
     }
@@ -179,7 +179,7 @@ public class FilmService {
 
         // Получаем фильмы по ID из пересечения без использования findFilmsByIds:
         List<Film> commonFilms = userLikedFilms.stream()
-                .map(filmId -> filmStorage.getFilmById(filmId).get())
+                .map(filmId -> filmStorage.getFilmById(filmId))
                 .collect(Collectors.toList());
 
         // Сортируем фильмы по количеству лайков (популярности) по убыванию
@@ -246,15 +246,15 @@ public class FilmService {
     }
 
     public Film likeFilm(Integer filmId, Integer userId) {
-        Film film = filmStorage.getFilmById(filmId).get();
+        Film film = filmStorage.getFilmById(filmId);
         userStorage.getUserById(userId);
         likesStorage.addLike(filmId, userId);
         log.info("Пользователь {} поставил лайк фильму {}", userId, filmId);
-        return filmStorage.getFilmById(filmId).get();
+        return filmStorage.getFilmById(filmId);
     }
 
     public void delLikeFilm(Integer filmId, Integer userId) {
-        filmStorage.getFilmById(filmId).get();
+        filmStorage.getFilmById(filmId);
         userStorage.getUserById(userId);
         likesStorage.deleteLike(filmId, userId);
         log.info("Пользователь {} убрал лайк с фильма {}", userId, filmId);

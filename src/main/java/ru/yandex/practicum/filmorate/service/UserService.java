@@ -103,7 +103,7 @@ public class UserService {
         }
 
         List<Film> recommendedFilms = similarUserLikedFilms.stream()
-                .map(filmId -> filmStorage.getFilmById(filmId).get())
+                .map(filmId -> filmStorage.getFilmById(filmId))
                 .toList();
 
         List<Film> sortedFilms = recommendedFilms.stream()

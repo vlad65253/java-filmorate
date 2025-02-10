@@ -29,13 +29,13 @@ public class GenreRepository extends BaseRepository<Genre> implements GenreStora
     }
 
     @Override
-    public Optional<Genre> getGenreById(int id) {
+    public Genre getGenreById(int id) {
         return findOne("""
                 SELECT
                 GENRE_ID,
                 GENRE_NAME
                 FROM GENRES WHERE GENRE_ID = ?
-                """, id);
+                """, id).get();
     }
 
     @Override
