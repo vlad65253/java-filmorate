@@ -195,26 +195,56 @@ public class FilmService {
         return sortedFilms;
     }
 
-//    public Collection<Film> getFilmsByDirector(int directorId, String sortBy) {
-//        if (directorStorage.getDirectorById(directorId) == null) {
-//            throw new NotFoundException("Режиссёр с ID " + directorId + " не найден");
-//        }
-//        Collection<Film> films = filmStorage.getByDirectorId(directorId, sortBy);
-//        log.debug("Получены фильмы режиссёра {} с сортировкой: {}", directorId, sortBy);
-//        return films;
-//    }
+    public Collection<Film> getFilmsByDirector(int directorId, String sortBy) {
+        // Проверка существования режиссёра
+        directorStorage.getDirectorById(directorId);
 
-//    public Collection<Film> getSearchFilms(String query, String by) {
-//        Collection<Film> films = filmStorage.getSearchFilms(query, by);
-//        log.debug("Результаты поиска по query={} и by={}: {}", query, by, films.size());
-//        return films;
-//    }
+        // Получаем фильмы режиссера через простой SQL-запрос
+        Collection<Film> films = filmStorage.getFilmsByDirector(directorId);
+        List<Film> filmList = new ArrayList<>(films);
 
-//    public Set<Integer> getLikedFilmsByUser(int userId) {
-//        Set<Integer> likedFilms = filmStorage.getLikedFilmsByUser(userId);
-//        log.debug("Пользователь {} лайкнул фильмы: {}", userId, likedFilms);
-//        return likedFilms;
-//    }
+        // Выполняем сортировку в зависимости от параметра sortBy
+        if ("year".equalsIgnoreCase(sortBy)) {
+            // Сортировка по году выпуска (по возрастанию)
+            filmList.sort(Comparator.comparing(Film::getReleaseDate));
+        } else if ("likes".equalsIgnoreCase(sortBy)) {
+            // Сортировка по количеству лайков (по убыванию)
+            filmList.sort((f1, f2) -> Integer.compare(
+                    likesStorage.getLikeCountForFilm(f2.getId()),
+                    likesStorage.getLikeCountForFilm(f1.getId())
+            ));
+        } else {
+            throw new ValidationException("Некорректный параметр сортировки: " + sortBy);
+        }
+
+        log.debug("Получены фильмы режиссера {} с сортировкой '{}': {}", directorId, sortBy, filmList);
+        return filmList;
+    }
+
+    public Collection<Film> searchFilms(String query, String by) {
+        String searchParam = "%" + query.toLowerCase() + "%";
+        Set<Film> result = new HashSet<>();
+        String[] criteria = by.split(",");
+        for (String criterion : criteria) {
+            String trimmed = criterion.trim();
+            if ("title".equalsIgnoreCase(trimmed)) {
+                result.addAll(filmStorage.getFilmsByTitle(searchParam));
+            } else if ("director".equalsIgnoreCase(trimmed)) {
+                result.addAll(filmStorage.getFilmsByDirectorName(searchParam));
+            } else {
+                throw new ValidationException("Некорректное значение параметра 'by': " + trimmed);
+            }
+        }
+        // Сортировка по количеству лайков (популярности)
+        List<Film> sortedFilms = result.stream()
+                .sorted((f1, f2) -> Integer.compare(
+                        likesStorage.getLikeCountForFilm(f2.getId()),
+                        likesStorage.getLikeCountForFilm(f1.getId())
+                ))
+                .collect(Collectors.toList());
+        log.debug("Результаты поиска для query='{}', by='{}': {}", query, by, sortedFilms);
+        return sortedFilms;
+    }
 
     public Film likeFilm(Integer filmId, Integer userId) {
         Film film = filmStorage.getFilmById(filmId).get();
