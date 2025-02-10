@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.storage;
 import ru.yandex.practicum.filmorate.model.Review;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface ReviewStorage {
 
@@ -10,11 +11,17 @@ public interface ReviewStorage {
 
     Review updateReview(Review review);
 
-    void deleteReview(int userId, int reviewId);
+    Optional<Review> getReviewById(int reviewId);
 
-    Review getReview(int reviewId);
+    List<Review> getReviewsByFilmId(Integer filmId, int count);
 
-    List<Review> getReviews(Integer filmId, int count);
+    boolean deleteReview(int reviewId);
 
-    void updateReviewUseful(int reviewId, int delta);
+    void addLike(int reviewId, int userId);
+
+    void addDislike(int reviewId, int userId);
+
+    void removeLike(int reviewId, int userId);
+
+    void removeDislike(int reviewId, int userId);
 }
