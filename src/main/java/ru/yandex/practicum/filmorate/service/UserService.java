@@ -3,14 +3,10 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.filmorate.dal.FilmRepository;
-import ru.yandex.practicum.filmorate.dal.FriendshipRepository;
-import ru.yandex.practicum.filmorate.dal.UserRepository;
 import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.EventStorage;
-import ru.yandex.practicum.filmorate.storage.UserStorage;
+import ru.yandex.practicum.filmorate.storage.*;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -20,10 +16,10 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class UserService {
     private final UserStorage userStorage;
-    private final FriendshipRepository friendshipRepository;
-    private final UserRepository userRepository;
-    private final FilmRepository filmRepository;
+    private final FriendshipStorage friendshipStorage;
     private final EventStorage eventStorage;
+    private final LikesStorage likesStorage;
+    private final FilmStorage filmStorage;
 
     public User createUser(User user) {
         if (user.getName() == null || user.getName().isBlank()) {
@@ -52,42 +48,98 @@ public class UserService {
     public void addFriend(Integer userId, Integer friendId) {
         getUserById(userId);
         getUserById(friendId);
-        friendshipRepository.addFriend(userId, friendId);
+        friendshipStorage.addFriend(userId, friendId);
         log.info("Пользователь {} добавил в друзья {}", userId, friendId);
     }
 
     public void deleteFriend(Integer userId, Integer friendId) {
         getUserById(userId);
         getUserById(friendId);
-        friendshipRepository.deleteFriend(userId, friendId);
+        friendshipStorage.deleteFriend(userId, friendId);
         log.info("Пользователь {} удалил из друзей {}", userId, friendId);
     }
 
     public Collection<User> getFriends(Integer userId) {
         getUserById(userId);
-        return friendshipRepository.getAllUserFriends(userId);
+        return friendshipStorage.getAllUserFriends(userId);
     }
 
     public Collection<User> getCommonFriend(Integer firstId, Integer secondId) {
         getUserById(firstId);
         getUserById(secondId);
-        return friendshipRepository.getCommonFriends(firstId, secondId);
+        return friendshipStorage.getCommonFriends(firstId, secondId);
     }
 
-//    public Collection<Film> getRecommendations(Integer userId) {
-//        Set<Integer> userLikedFilms = filmRepository.getLikedFilmsByUser(userId);
-//        Map<Integer, Long> commonLikesCount = userRepository.findUsersWithCommonLikes(userLikedFilms, userId);
-//        Integer similarUserId = commonLikesCount.entrySet().stream()
-//                .max(Map.Entry.comparingByValue())
-//                .map(Map.Entry::getKey)
-//                .orElse(null);
-//        if (similarUserId == null) {
-//            return Collections.emptyList();
-//        }
-//        Set<Integer> similarUserLikedFilms = filmRepository.getLikedFilmsByUser(similarUserId);
-//        similarUserLikedFilms.removeAll(userLikedFilms);
-//        return filmRepository.findFilmsByIds(similarUserLikedFilms);
-//    }
+    public Collection<Film> getRecommendations(Integer userId) {
+        Set<Integer> userLikedFilms = likesStorage.getLikedFilmsByUser(userId);
+        if (userLikedFilms.isEmpty()) {
+            log.info("Пользователь с id {} не поставил ни одного лайка, рекомендации отсутствуют", userId);
+            return Collections.emptyList();
+        }
+
+        // Находим пользователей с общими лайками (исключая самого пользователя)
+        Map<Integer, Long> commonLikes = findUsersWithCommonLikes(userLikedFilms, userId);
+        if (commonLikes.isEmpty()) {
+            log.info("У пользователя с id {} нет общих лайков с другими пользователями", userId);
+            return Collections.emptyList();
+        }
+
+        // Определяем пользователя с максимальным числом общих лайков
+        Integer similarUserId = commonLikes.entrySet().stream()
+                .max(Map.Entry.comparingByValue())
+                .map(Map.Entry::getKey)
+                .orElse(null);
+        if (similarUserId == null) {
+            return Collections.emptyList();
+        }
+
+        Set<Integer> similarUserLikedFilms = likesStorage.getLikedFilmsByUser(similarUserId);
+        // Исключаем те, которые уже лайкнул текущий пользователь
+        similarUserLikedFilms.removeAll(userLikedFilms);
+        if (similarUserLikedFilms.isEmpty()) {
+            log.info("Нет фильмов для рекомендаций: пользователь {} уже лайкнул все фильмы, понравившиеся пользователю {}",
+                    userId, similarUserId);
+            return Collections.emptyList();
+        }
+
+        List<Film> recommendedFilms = similarUserLikedFilms.stream()
+                .map(filmId -> filmStorage.getFilmById(filmId).get())
+                .toList();
+
+        List<Film> sortedFilms = recommendedFilms.stream()
+                .sorted((f1, f2) -> Integer.compare(
+                        likesStorage.getLikeCountForFilm(f2.getId()),
+                        likesStorage.getLikeCountForFilm(f1.getId())
+                ))
+                .collect(Collectors.toList());
+
+        log.debug("Рекомендации для пользователя {} на основе предпочтений пользователя {}: {}",
+                userId, similarUserId, sortedFilms);
+        return sortedFilms;
+    }
+
+    public Map<Integer, Long> findUsersWithCommonLikes(Set<Integer> filmIds, Integer userId) {
+        if (filmIds.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        // Формируем строку плейсхолдеров, например, "?, ?, ?" для каждого filmId
+        String placeholders = String.join(",", Collections.nCopies(filmIds.size(), "?"));
+        String sql = "SELECT USER_ID, COUNT(FILM_ID) AS COMMON_LIKES " +
+                "FROM LIKE_LIST " +
+                "WHERE FILM_ID IN (" + placeholders + ") AND USER_ID <> ? " +
+                "GROUP BY USER_ID";
+        Object[] params = new Object[filmIds.size() + 1];
+        int i = 0;
+        for (Integer filmId : filmIds) {
+            params[i++] = filmId;
+        }
+        params[i] = userId; // исключаем самого пользователя
+
+        Map<Integer, Long> commonLikesCount = likesStorage.getCommonLikes(sql, params);
+        log.debug("Найдено пользователей с общими лайками: {}", commonLikesCount);
+        return commonLikesCount;
+    }
 
     public Set<Event> getFeedUserById(Integer id) {
         return eventStorage.getFeedUserById(id).stream()

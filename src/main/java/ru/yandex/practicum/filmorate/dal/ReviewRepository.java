@@ -1,9 +1,7 @@
 package ru.yandex.practicum.filmorate.dal;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.mapper.ReviewRowMapper;
 import ru.yandex.practicum.filmorate.model.Review;
 import ru.yandex.practicum.filmorate.storage.ReviewStorage;
@@ -91,8 +89,8 @@ public class ReviewRepository extends BaseRepository<Review> implements ReviewSt
 
     // Удаление отзыва по ID
     @Override
-    public boolean deleteReview(int reviewId) {
-        return delete("DELETE FROM REVIEWS WHERE REVIEW_ID = ?", reviewId);
+    public void deleteReview(int reviewId) {
+        delete("DELETE FROM REVIEWS WHERE REVIEW_ID = ?", reviewId);
     }
 
     // Методы для работы с лайками и дизлайками

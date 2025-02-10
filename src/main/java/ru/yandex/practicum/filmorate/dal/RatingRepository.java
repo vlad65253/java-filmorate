@@ -3,14 +3,11 @@ package ru.yandex.practicum.filmorate.dal;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
-import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Rating;
 import ru.yandex.practicum.filmorate.storage.RatingStorage;
 
 import java.util.Collection;
 import java.util.Optional;
-import java.util.Set;
 
 @Repository
 public class RatingRepository extends BaseRepository<Rating> implements RatingStorage {

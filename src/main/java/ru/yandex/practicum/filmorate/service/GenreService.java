@@ -28,9 +28,4 @@ public class GenreService {
     public Genre update(Genre genre) {
         return genreRepository.getGenreById(genre.getId()).get();
     }
-
-//    public void deleteGenre(Integer filmId) {
-//        genreRepository.delGenres(filmId);
-//        log.info("Удалены жанры для фильма с id: {}", filmId);
-//    }
 }

@@ -6,7 +6,6 @@ import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.service.DirectorService;
 
-import java.util.Collection;
 import java.util.Set;
 
 @RestController

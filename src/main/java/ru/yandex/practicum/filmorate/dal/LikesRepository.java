@@ -8,8 +8,7 @@ import ru.yandex.practicum.filmorate.dal.status.EventType;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.LikesStorage;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 @Repository
 public class LikesRepository extends BaseRepository<Film> implements LikesStorage {
@@ -49,5 +48,15 @@ public class LikesRepository extends BaseRepository<Film> implements LikesStorag
     @Override
     public Set<Integer> getLikedFilmsByUser(Integer userId) {
         return new HashSet<>(jdbc.queryForList(GET_LIKED_FILMS_BY_USER, Integer.class, userId));
+    }
+
+    public Map<Integer, Long> getCommonLikes(String sql, Object[] params) {
+        return jdbc.query(sql, params, rs -> {
+            Map<Integer, Long> result = new HashMap<>();
+            while (rs.next()) {
+                result.put(rs.getInt("USER_ID"), rs.getLong("COMMON_LIKES"));
+            }
+            return result;
+        });
     }
 }

@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.storage;
 
+import java.util.Map;
 import java.util.Set;
 
 public interface LikesStorage {
@@ -11,4 +12,6 @@ public interface LikesStorage {
     int getLikeCountForFilm(Integer filmId);
 
     Set<Integer> getLikedFilmsByUser(Integer userId);
+
+    public Map<Integer, Long> getCommonLikes(String sql, Object[] params);
 }
