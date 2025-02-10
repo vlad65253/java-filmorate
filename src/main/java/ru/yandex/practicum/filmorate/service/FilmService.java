@@ -63,8 +63,10 @@ public class FilmService {
     }
 
     public Film updateFilm(Film film) {
-        // Проверка входных данных
-        filmStorage.getFilmById(film.getId());
+        // Проверка существования фильма (метод getFilmById выбросит исключение, если фильм не найден)
+        filmStorage.getFilmById(film.getId())
+                .orElseThrow(() -> new NotFoundException("Фильм с id " + film.getId() + " не найден"));
+
         if (film.getName() == null || film.getName().isBlank()) {
             throw new ValidationException("Название фильма не может быть пустым.");
         }
@@ -74,37 +76,38 @@ public class FilmService {
         if (film.getReleaseDate() == null) {
             throw new ValidationException("Дата релиза не может быть пустой.");
         }
+
         // Проверяем существование рейтинга МПА
         if (!filmStorage.ratingExists(film.getMpa().getId())) {
             throw new NotFoundException("Рейтинг МПА с ID " + film.getMpa().getId() + " не найден");
         }
-        if(film.getGenres() != null && !film.getGenres().isEmpty()) {
-            film.getGenres().forEach(g -> genreStorage.getGenreById(g.getId()));
-        }
-        if(film.getDirectors() != null && !film.getDirectors().isEmpty()) {
-            film.getDirectors().forEach(g -> directorStorage.getDirectorById(g.getId()));
-        }
-        // Обновление фильма
-        filmStorage.updateFilm(film);
-        film.setMpa(ratingStorage.getRatingById(film.getMpa().getId()).get());
 
-        if (film.getGenres() != null) {
+        // Если жанры заданы и список не пустой – обновляем их,
+        // иначе (если список пуст или равен null) – просто удаляем все привязанные жанры.
+        if (film.getGenres() != null && !film.getGenres().isEmpty()) {
             genreStorage.deleteGenreForFilmById(film.getId());
             genreStorage.createGenresForFilmById(film.getId(), film.getGenres().stream().toList());
             film.setGenres(genreStorage.getGenresFilmById(film.getId()));
-        } else{
+        } else {
             genreStorage.deleteGenreForFilmById(film.getId());
-            film.setGenres(genreStorage.getGenresFilmById(film.getId()));
+            film.setGenres(Collections.emptySet());
         }
 
-        if (film.getDirectors() != null) {
+        // Аналогичная логика для режиссёров (если требуется). Здесь можно оставить как есть, либо аналогично:
+        if (film.getDirectors() != null && !film.getDirectors().isEmpty()) {
             directorStorage.deleteDirectorsFilmById(film.getId());
             directorStorage.createDirectorsForFilmById(film.getId(), film.getDirectors().stream().toList());
             film.setDirectors(directorStorage.getDirectorsFilmById(film.getId()));
-        } else{
+        } else {
             directorStorage.deleteDirectorsFilmById(film.getId());
-            film.setDirectors(directorStorage.getDirectorsFilmById(film.getId()));
+            film.setDirectors(Collections.emptySet());
         }
+
+        // Обновляем основные данные фильма
+        filmStorage.updateFilm(film);
+        film.setMpa(ratingStorage.getRatingById(film.getMpa().getId()).get());
+
+        // Возвращаем обновлённый фильм
         return filmStorage.getFilmById(film.getId()).get();
     }
 
@@ -126,31 +129,37 @@ public class FilmService {
     }
 
     public Set<Film> getTopFilms(Integer count, Integer genreId, Integer year) {
-        if (genreId != null && year != null) {
-            return filmStorage.getTopFilms().stream()
-                    .filter(f -> f.getGenres().stream()
-                            .map(Genre::getId)
-                            .anyMatch(i -> genreId == i))
-                    .filter(y -> y.getReleaseDate().getYear() == year)
-                    .limit(count)
-                    .collect(Collectors.toCollection(LinkedHashSet::new));
-        } else if (genreId != null) {
-            return filmStorage.getTopFilms().stream()
-                    .filter(f -> f.getGenres().stream()
-                            .map(Genre::getId)
-                            .anyMatch(i -> genreId == i))
-                    .limit(count)
-                    .collect(Collectors.toCollection(LinkedHashSet::new));
-        } else if (year != null) {
-            return filmStorage.getTopFilms().stream()
-                    .filter(y -> y.getReleaseDate().getYear() == year)
-                    .limit(count)
-                    .collect(Collectors.toCollection(LinkedHashSet::new));
-        } else {
-            return filmStorage.getTopFilms();
-        }
-    }
+        List<Film> films = filmStorage.getFilms();
 
+        // Если задан параметр genreId – оставляем только те фильмы, у которых есть жанр с таким ID
+        if (genreId != null) {
+            films = films.stream()
+                    .filter(film -> film.getGenres() != null &&
+                            film.getGenres().stream().anyMatch(genre -> genre.getId().equals(genreId)))
+                    .collect(Collectors.toList());
+        }
+
+        // Если задан параметр year – оставляем только фильмы, выпущенные в указанном году
+        if (year != null) {
+            films = films.stream()
+                    .filter(film -> film.getReleaseDate() != null &&
+                            film.getReleaseDate().getYear() == year)
+                    .collect(Collectors.toList());
+        }
+
+        // Сортируем фильмы по количеству лайков по убыванию
+        films.sort((f1, f2) -> Integer.compare(
+                likesStorage.getLikeCountForFilm(f2.getId()),
+                likesStorage.getLikeCountForFilm(f1.getId())
+        ));
+
+        Set<Film> topFilms = films.stream()
+                .limit(count)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+
+        log.debug("Получены топ-{} фильмов по лайкам с genreId={} и year={}: {}", count, genreId, year, topFilms);
+        return topFilms;
+    }
 
     public Collection<Film> getCommonFilms(int userId, int friendId) {
         // Проверка существования пользователей (метод getUserById выбросит исключение, если пользователь не найден)

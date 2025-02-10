@@ -17,19 +17,16 @@ import java.util.stream.Collectors;
 @Repository
 public class GenreRepository extends BaseRepository<Genre> implements GenreStorage {
 
-    private final JdbcTemplate jdbc;
-
     @Autowired
     public GenreRepository(JdbcTemplate jdbc, RowMapper<Genre> mapper) {
         super(jdbc, mapper);
-        this.jdbc = jdbc;
     }
 
     @Override
     public List<Genre> getGenres() {
         return findMany("""
-                SELECT GENRE_ID, GENRE_NAME FROM GENRES
-                """, mapper);
+                SELECT * FROM GENRES
+                """);
     }
 
     @Override
