@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dal.FilmRepository;
 import ru.yandex.practicum.filmorate.dal.FriendshipRepository;
+import ru.yandex.practicum.filmorate.dal.LikesRepository;
 import ru.yandex.practicum.filmorate.dal.UserRepository;
 import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.Film;
@@ -24,6 +25,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final FilmRepository filmRepository;
     private final EventStorage eventStorage;
+    private final LikesRepository likesRepository;
 
     public User createUser(User user) {
         if (user.getName() == null || user.getName().isBlank()) {
@@ -74,20 +76,20 @@ public class UserService {
         return friendshipRepository.getCommonFriends(firstId, secondId);
     }
 
-//    public Collection<Film> getRecommendations(Integer userId) {
-//        Set<Integer> userLikedFilms = filmRepository.getLikedFilmsByUser(userId);
-//        Map<Integer, Long> commonLikesCount = userRepository.findUsersWithCommonLikes(userLikedFilms, userId);
-//        Integer similarUserId = commonLikesCount.entrySet().stream()
-//                .max(Map.Entry.comparingByValue())
-//                .map(Map.Entry::getKey)
-//                .orElse(null);
-//        if (similarUserId == null) {
-//            return Collections.emptyList();
-//        }
-//        Set<Integer> similarUserLikedFilms = filmRepository.getLikedFilmsByUser(similarUserId);
-//        similarUserLikedFilms.removeAll(userLikedFilms);
-//        return filmRepository.findFilmsByIds(similarUserLikedFilms);
-//    }
+    public Collection<Film> getRecommendations(Integer userId) {
+        Set<Integer> userLikedFilms = likesRepository.getLikedFilmsByUser(userId);
+        Map<Integer, Long> commonLikesCount = userRepository.findUsersWithCommonLikes(userLikedFilms, userId);
+
+        return commonLikesCount.entrySet().stream()
+                .max(Map.Entry.comparingByValue())
+                .map(Map.Entry::getKey)
+                .map(similarUserId -> {
+                    Set<Integer> similarUserLikedFilms = likesRepository.getLikedFilmsByUser(similarUserId);
+                    similarUserLikedFilms.removeAll(userLikedFilms);
+                    return filmRepository.findFilmsByIds(similarUserLikedFilms);
+                })
+                .orElse(Collections.emptyList());
+    }
 
     public Set<Event> getFeedUserById(Integer id) {
         return eventStorage.getFeedUserById(id).stream()
