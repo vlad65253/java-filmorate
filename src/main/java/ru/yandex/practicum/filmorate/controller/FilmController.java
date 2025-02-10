@@ -46,16 +46,18 @@ public class FilmController {
         return filmService.getFilmById(id);
     }
 
-//    @GetMapping("/popular")
-//    public Collection<Film> getPopularFilms(@RequestParam(defaultValue = "10") int count) {
-//        return filmService.getTopFilms(count);
-//    }
+    @PutMapping("/{id}/like/{userId}")
+    public Film likeFilm(@PathVariable int id, @PathVariable int userId) {
+        log.info("Пользователь {} ставит лайк фильму {}", userId, id);
+        return filmService.likeFilm(id, userId);
+    }
 
-//    @ResponseStatus(HttpStatus.NO_CONTENT)
-//    @DeleteMapping("/{id}/like/{userId}")
-//    public void deleteLike(@PathVariable int id, @PathVariable int userId) {
-//        filmService.delLikeFilm(id, userId);
-//    }
+    @DeleteMapping("/{id}/like/{userId}")
+    @ResponseStatus(HttpStatus.OK)
+    public void delLikeFilm(@PathVariable int id, @PathVariable int userId) {
+        log.info("Пользователь {} удаляет лайк с фильма {}", userId, id);
+        filmService.delLikeFilm(id, userId);
+    }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
@@ -69,19 +71,19 @@ public class FilmController {
 //        return filmService.getFilmsByDirector(directorId, sortBy);
 //    }
 
-//    @GetMapping("/common")
-//    public Collection<Film> getCommonFilms(@RequestParam int userId,
-//                                           @RequestParam int friendId) {
-//        return filmService.getCommonFilms(userId, friendId);
-//    }
+
+    @GetMapping("/common")
+    public Collection<Film> getCommonFilms(@RequestParam int userId, @RequestParam int friendId) {
+        log.info("Запрос общих фильмов для пользователей userId={} и friendId={}", userId, friendId);
+        return filmService.getCommonFilms(userId, friendId);
+    }
 
     /*GET /films/popular?count={limit}&genreId={genreId}&year={year}*/
     @GetMapping("/popular")
     public Set<Film> getPopularFilms(
             @RequestParam(defaultValue = "10") Integer count,
             @RequestParam(required = false) Integer genreId,
-            @RequestParam(required = false) Integer year
-    ) {
+            @RequestParam(required = false) Integer year) {
         return filmService.getTopFilms(count, genreId, year);
     }
 

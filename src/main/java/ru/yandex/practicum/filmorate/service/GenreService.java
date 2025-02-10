@@ -6,6 +6,8 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dal.GenreRepository;
 import ru.yandex.practicum.filmorate.model.Genre;
 
+import java.util.List;
+
 @SuppressWarnings("ALL")
 @Slf4j
 @Service
@@ -13,11 +15,11 @@ import ru.yandex.practicum.filmorate.model.Genre;
 public class GenreService {
     private final GenreRepository genreRepository;
 
-//    public Collection<Genre> getAllGenres() {
-//        Collection<Genre> genres = genreRepository.getAllGenres();
-//        log.debug("Получено жанров: {}", genres.size());
-//        return genres;
-//    }
+    public List<Genre> getAllGenres() {
+        List<Genre> genres = genreRepository.getGenres();
+        log.debug("Получено жанров: {}", genres.size());
+        return genres;
+    }
 
     public Genre getGenreById(Integer id) {
         return genreRepository.getGenreById(id).get();

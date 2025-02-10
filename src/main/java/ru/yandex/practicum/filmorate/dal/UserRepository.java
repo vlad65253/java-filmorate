@@ -74,30 +74,4 @@ public class UserRepository extends BaseRepository<User> implements UserStorage 
             throw new NotFoundException("Пользователь с id " + id + " не найден");
         }
     }
-
-    public Map<Integer, Long> findUsersWithCommonLikes(Set<Integer> filmIds, Integer userId) {
-        if (filmIds.isEmpty()) {
-            return Collections.emptyMap();
-        }
-        String placeholders = filmIds.stream().map(id -> "?").collect(Collectors.joining(","));
-        String sql = String.format("SELECT u.USER_ID, COUNT(l.FILM_ID) AS COMMON_LIKES \n" +
-                "FROM LIKE_LIST l \n" +
-                "JOIN LIKE_LIST u ON l.FILM_ID = u.FILM_ID \n" +
-                "WHERE l.USER_ID = ? AND u.USER_ID != ? \n" +
-                "GROUP BY u.USER_ID \n" +
-                "ORDER BY COMMON_LIKES DESC\n", placeholders);
-        Object[] params = new Object[filmIds.size() + 1];
-        int i = 0;
-        for (Integer filmId : filmIds) {
-            params[i++] = filmId;
-        }
-        params[i] = userId;
-        return jdbc.query(sql, params, rs -> {
-            Map<Integer, Long> result = new HashMap<>();
-            while (rs.next()) {
-                result.put(rs.getInt("USER_ID"), rs.getLong("COMMON_LIKES"));
-            }
-            return result;
-        });
-    }
 }
