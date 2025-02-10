@@ -15,6 +15,7 @@ public class LikesRepository extends BaseRepository<Film> implements LikesStorag
     private static final String DEL_LIKE_FOR_FILM = "DELETE FROM LIKE_LIST WHERE FILM_ID = ? AND USER_ID = ?";
     private static final String SQL_EVENT = "INSERT INTO EVENTS(USER_ID, EVENT_TYPE, OPERATION, ENTITY_ID) VALUES (?, ?, ?, ?)";
 
+
     public LikesRepository(JdbcTemplate jdbc, RowMapper<Film> mapper) {
         super(jdbc, mapper);
     }

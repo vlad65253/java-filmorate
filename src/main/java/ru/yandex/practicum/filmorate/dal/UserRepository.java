@@ -80,7 +80,12 @@ public class UserRepository extends BaseRepository<User> implements UserStorage 
             return Collections.emptyMap();
         }
         String placeholders = filmIds.stream().map(id -> "?").collect(Collectors.joining(","));
-        String sql = String.format("SELECT USER_ID, COUNT(FILM_ID) AS COMMON_LIKES FROM LIKE_LIST WHERE FILM_ID IN (%s) AND USER_ID != ? GROUP BY USER_ID", placeholders);
+        String sql = String.format("SELECT u.USER_ID, COUNT(l.FILM_ID) AS COMMON_LIKES \n" +
+                "FROM LIKE_LIST l \n" +
+                "JOIN LIKE_LIST u ON l.FILM_ID = u.FILM_ID \n" +
+                "WHERE l.USER_ID = ? AND u.USER_ID != ? \n" +
+                "GROUP BY u.USER_ID \n" +
+                "ORDER BY COMMON_LIKES DESC\n", placeholders);
         Object[] params = new Object[filmIds.size() + 1];
         int i = 0;
         for (Integer filmId : filmIds) {

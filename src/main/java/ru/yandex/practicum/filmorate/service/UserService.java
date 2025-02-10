@@ -77,16 +77,17 @@ public class UserService {
     public Collection<Film> getRecommendations(Integer userId) {
         Set<Integer> userLikedFilms = filmRepository.getLikedFilmsByUser(userId);
         Map<Integer, Long> commonLikesCount = userRepository.findUsersWithCommonLikes(userLikedFilms, userId);
-        Integer similarUserId = commonLikesCount.entrySet().stream()
+        return commonLikesCount.entrySet().stream()
                 .max(Map.Entry.comparingByValue())
                 .map(Map.Entry::getKey)
-                .orElse(null);
-        if (similarUserId == null) {
-            return Collections.emptyList();
-        }
-        Set<Integer> similarUserLikedFilms = filmRepository.getLikedFilmsByUser(similarUserId);
-        similarUserLikedFilms.removeAll(userLikedFilms);
-        return filmRepository.findFilmsByIds(similarUserLikedFilms);
+                .map(similarUserId -> {
+                    Set<Integer> similarUserLikedFilms = filmRepository.getLikedFilmsByUser(similarUserId);
+                    similarUserLikedFilms.removeAll(userLikedFilms);
+                    return filmRepository.findFilmsByIds(similarUserLikedFilms).stream()
+                            .sorted(Comparator.comparingInt(film -> film.getLikeCountForFilm().size()).reversed())
+                            .collect(Collectors.toList());
+                })
+                .orElse(Collections.emptyList());
     }
 
     public Set<Event> getFeedUserById(Integer id) {
