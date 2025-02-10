@@ -38,8 +38,7 @@ public class ReviewService {
 
     // Обновление существующего отзыва
     public Review updateReview(Review review) {
-        reviewStorage.getReviewById(review.getReviewId())
-                .orElseThrow(() -> new NotFoundException("Отзыв с id " + review.getReviewId() + " не найден"));
+        reviewStorage.getReviewById(review.getReviewId());
         Review updated = reviewStorage.updateReview(review);
         log.info("Отзыв с id {} обновлён", review.getReviewId());
         return updated;
@@ -47,16 +46,13 @@ public class ReviewService {
 
     // Удаление отзыва по ID
     public void deleteReview(int reviewId) {
-        if (!reviewStorage.deleteReview(reviewId)) {
-            throw new NotFoundException("Отзыв с id " + reviewId + " не найден");
-        }
+        reviewStorage.deleteReview(reviewId);
         log.info("Отзыв с id {} удалён", reviewId);
     }
 
     // Получение отзыва по ID
     public Review getReviewById(int reviewId) {
-        return reviewStorage.getReviewById(reviewId)
-                .orElseThrow(() -> new NotFoundException("Отзыв с id " + reviewId + " не найден"));
+        return reviewStorage.getReviewById(reviewId).get();
     }
 
     // Получение списка отзывов

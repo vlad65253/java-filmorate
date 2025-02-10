@@ -42,7 +42,7 @@ public class ReviewRepository extends BaseRepository<Review> implements ReviewSt
     // Обновление отзыва (изменяются только поля CONTENT и IS_POSITIVE)
     @Override
     public Review updateReview(Review review) {
-        boolean updated = update("""
+        update("""
                 UPDATE REVIEWS
                 SET CONTENT = ?, IS_POSITIVE = ?
                 WHERE REVIEW_ID = ?
@@ -50,9 +50,7 @@ public class ReviewRepository extends BaseRepository<Review> implements ReviewSt
                 review.getContent(),
                 review.getIsPositive(),
                 review.getReviewId());
-        if (!updated) {
-            throw new NotFoundException("Отзыв с id " + review.getReviewId() + " не найден");
-        }
+
         return getReviewById(review.getReviewId()).get();
     }
 
@@ -101,51 +99,37 @@ public class ReviewRepository extends BaseRepository<Review> implements ReviewSt
 
     @Override
     public void addLike(int reviewId, int userId) {
-        int res = jdbc.update("""
+        update("""
                 INSERT INTO REVIEW_LIKES (REVIEW_ID, USER_ID, IS_LIKE)
                 VALUES (?, ?, ?)
                 """, reviewId, userId, true);
-        if (res == 0) {
-            throw new NotFoundException("Не удалось добавить лайк отзыву с id " + reviewId);
-        }
-        jdbc.update("UPDATE REVIEWS SET USEFUL = USEFUL + 1 WHERE REVIEW_ID = ?", reviewId);
+        update("UPDATE REVIEWS SET USEFUL = USEFUL + 1 WHERE REVIEW_ID = ?", reviewId);
     }
 
     @Override
     public void addDislike(int reviewId, int userId) {
-        int res = jdbc.update("""
+        update("""
                 INSERT INTO REVIEW_LIKES (REVIEW_ID, USER_ID, IS_LIKE)
                 VALUES (?, ?, ?)
                 """, reviewId, userId, false);
-        if (res == 0) {
-            throw new NotFoundException("Не удалось добавить дизлайк отзыву с id " + reviewId);
-        }
-        jdbc.update("UPDATE REVIEWS SET USEFUL = USEFUL - 1 WHERE REVIEW_ID = ?", reviewId);
+        update("UPDATE REVIEWS SET USEFUL = USEFUL - 1 WHERE REVIEW_ID = ?", reviewId);
     }
 
     @Override
     public void removeLike(int reviewId, int userId) {
-        int res = jdbc.update("""
+        delete("""
                 DELETE FROM REVIEW_LIKES
                 WHERE REVIEW_ID = ? AND USER_ID = ? AND IS_LIKE = true
                 """, reviewId, userId);
-        if (res > 0) {
-            jdbc.update("UPDATE REVIEWS SET USEFUL = USEFUL - 1 WHERE REVIEW_ID = ?", reviewId);
-        } else {
-            throw new NotFoundException("Лайк от пользователя " + userId + " для отзыва " + reviewId + " не найден");
-        }
+        update("UPDATE REVIEWS SET USEFUL = USEFUL - 1 WHERE REVIEW_ID = ?", reviewId);
     }
 
     @Override
     public void removeDislike(int reviewId, int userId) {
-        int res = jdbc.update("""
+        update("""
                 DELETE FROM REVIEW_LIKES
                 WHERE REVIEW_ID = ? AND USER_ID = ? AND IS_LIKE = false
                 """, reviewId, userId);
-        if (res > 0) {
-            jdbc.update("UPDATE REVIEWS SET USEFUL = USEFUL + 1 WHERE REVIEW_ID = ?", reviewId);
-        } else {
-            throw new NotFoundException("Дизлайк от пользователя " + userId + " для отзыва " + reviewId + " не найден");
-        }
+        update("UPDATE REVIEWS SET USEFUL = USEFUL + 1 WHERE REVIEW_ID = ?", reviewId);
     }
 }
