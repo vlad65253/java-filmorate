@@ -18,20 +18,12 @@ public class FriendshipRepository extends BaseRepository<User> implements Friend
 
     @Override
     public void addFriend(int userId, int friendId) {
-        boolean updated = update("INSERT INTO FRIENDS_LIST (USER_ID, FRIEND_ID) VALUES (?, ?)", userId, friendId);
-        if (!updated) {
-            throw new NotFoundException("Не удалось добавить друга: пользователь с id " + userId +
-                    " или друг с id " + friendId + " не найден");
-        }
+        update("INSERT INTO FRIENDS_LIST (USER_ID, FRIEND_ID) VALUES (?, ?)", userId, friendId);
     }
 
     @Override
     public void deleteFriend(int userId, int friendId) {
-        boolean deleted = delete("DELETE FROM FRIENDS_LIST WHERE USER_ID = ? AND FRIEND_ID = ?", userId, friendId);
-        if (!deleted) {
-            throw new NotFoundException("Не удалось удалить друга: дружба между пользователями с id " +
-                    userId + " и " + friendId + " не найдена");
-        }
+        delete("DELETE FROM FRIENDS_LIST WHERE USER_ID = ? AND FRIEND_ID = ?", userId, friendId);
     }
 
     @Override

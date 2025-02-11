@@ -67,10 +67,7 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
 
     @Override
     public void deleteFilm(int filmId) {
-        int deletedRows = jdbc.update("DELETE FROM FILMS WHERE FILM_ID = ?", filmId);
-        if (deletedRows == 0) {
-            throw new NotFoundException("Фильм с id " + filmId + " не найден");
-        }
+        update("DELETE FROM FILMS WHERE FILM_ID = ?", filmId);
     }
 
     @Override

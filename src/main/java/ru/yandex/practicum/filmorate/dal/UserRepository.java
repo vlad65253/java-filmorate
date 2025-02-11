@@ -35,15 +35,12 @@ public class UserRepository extends BaseRepository<User> implements UserStorage 
 
     @Override
     public User updateUser(User updateUser) {
-        boolean updated = update("UPDATE USERS SET EMAIL = ?, LOGIN = ?, NAME = ?, BIRTHDAY = ? WHERE USER_ID = ?",
+        update("UPDATE USERS SET EMAIL = ?, LOGIN = ?, NAME = ?, BIRTHDAY = ? WHERE USER_ID = ?",
                 updateUser.getEmail(),
                 updateUser.getLogin(),
                 updateUser.getName(),
                 updateUser.getBirthday(),
                 updateUser.getId());
-        if (!updated) {
-            throw new NotFoundException("Пользователь с id " + updateUser.getId() + " не найден");
-        }
         return updateUser;
     }
 
@@ -59,9 +56,6 @@ public class UserRepository extends BaseRepository<User> implements UserStorage 
 
     @Override
     public void deleteUser(int id) {
-        boolean deleted = delete("DELETE FROM USERS WHERE USER_ID = ?", id);
-        if (!deleted) {
-            throw new NotFoundException("Пользователь с id " + id + " не найден");
-        }
+        delete("DELETE FROM USERS WHERE USER_ID = ?", id);
     }
 }

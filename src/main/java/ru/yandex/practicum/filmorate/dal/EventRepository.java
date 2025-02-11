@@ -27,4 +27,9 @@ public class EventRepository extends BaseRepository<Event> implements EventStora
         update("INSERT INTO EVENTS(USER_ID, EVENT_TYPE, OPERATION, ENTITY_ID) VALUES (?, ?, ?, ?)",
                 userId, eventType.toString(), operation.toString(), entityId);
     }
+
+    @Override
+    public void deleteEventsByUserId(int userId) {
+        delete("DELETE FROM EVENTS WHERE USER_ID = ?", userId);
+    }
 }

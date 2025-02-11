@@ -46,6 +46,7 @@ public class UserService {
     }
 
     public void deleteUser(int id) {
+        eventStorage.deleteEventsByUserId(id);
         userStorage.deleteUser(id);
     }
 

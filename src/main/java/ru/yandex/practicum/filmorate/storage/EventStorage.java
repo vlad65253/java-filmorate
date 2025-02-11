@@ -11,4 +11,6 @@ public interface EventStorage {
     List<Event> getFeedUserById(int id);
 
     void addEvent(int userId, EventType eventType, EventOperation operation, int entityId);
+
+    void deleteEventsByUserId(int userId);
 }
