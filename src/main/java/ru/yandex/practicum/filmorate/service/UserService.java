@@ -147,13 +147,14 @@ public class UserService {
         return commonLikesCount;
     }
 
-    public List<Event> getFeedUserById(int id) {
-        List<Event> events = eventStorage.getFeedUserById(id).stream()
+    public LinkedList<Event> getFeedUserById(int id) {
+        LinkedList<Event> events = eventStorage.getFeedUserById(id).stream()
                 .sorted(Comparator.comparing(Event::getTimestamp))
-                .toList();
+                .collect(Collectors.toCollection(LinkedList::new));
         if (events.isEmpty()) {
             throw new NotFoundException("Лента событий для пользователя с id " + id + " пуста.");
         }
         return events;
     }
+
 }
