@@ -11,7 +11,7 @@ import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
 
 import java.util.Collection;
-import java.util.Set;
+import java.util.List;
 
 @RestController
 @RequestMapping("/users")
@@ -76,7 +76,7 @@ public class UserController {
 
     /*GET /users/{id}/feed*/
     @GetMapping("/{id}/feed")
-    public Set<Event> getFeedUserById(@PathVariable int id) {
+    public List<Event> getFeedUserById(@PathVariable int id) {
         return userService.getFeedUserById(id);
     }
 }

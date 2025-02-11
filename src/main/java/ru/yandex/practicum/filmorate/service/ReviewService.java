@@ -74,7 +74,6 @@ public class ReviewService {
         userStorage.getUserById(userId);
         reviewStorage.addLike(reviewId, userId);
         log.info("Пользователь {} поставил лайк отзыву {}", userId, reviewId);
-        eventStorage.addEvent(userId, EventType.LIKE, EventOperation.ADD, reviewId);
     }
 
     public void addDislike(int reviewId, int userId) {
@@ -88,7 +87,6 @@ public class ReviewService {
         getReviewById(reviewId);
         userStorage.getUserById(userId);
         reviewStorage.removeLike(reviewId, userId);
-        eventStorage.addEvent(userId, EventType.LIKE, EventOperation.REMOVE, reviewId);
         log.info("Пользователь {} удалил лайк у отзыва {}", userId, reviewId);
     }
 

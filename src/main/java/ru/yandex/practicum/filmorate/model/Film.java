@@ -1,6 +1,5 @@
 package ru.yandex.practicum.filmorate.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
@@ -30,8 +29,6 @@ public class Film implements Serializable {
     @Positive
     private Integer duration;
     private Rating mpa;
-    @JsonIgnore
-    private Set<Integer> likedList;
     private Set<Genre> genres;
     private Set<Director> directors;
 }

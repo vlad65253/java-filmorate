@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dal.status.EventOperation;
 import ru.yandex.practicum.filmorate.dal.status.EventType;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
@@ -146,9 +147,13 @@ public class UserService {
         return commonLikesCount;
     }
 
-    public Set<Event> getFeedUserById(int id) {
-        return eventStorage.getFeedUserById(id).stream()
-                .sorted(Comparator.comparing(Event::getUserId))
-                .collect(Collectors.toCollection(LinkedHashSet::new));
+    public List<Event> getFeedUserById(int id) {
+        List<Event> events = eventStorage.getFeedUserById(id).stream()
+                .sorted(Comparator.comparing(Event::getTimestamp))
+                .toList();
+        if (events.isEmpty()) {
+            throw new NotFoundException("Лента событий для пользователя с id " + id + " пуста.");
+        }
+        return events;
     }
 }

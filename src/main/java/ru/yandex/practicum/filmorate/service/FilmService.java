@@ -231,11 +231,18 @@ public class FilmService {
     }
 
     public Film likeFilm(int filmId, int userId) {
-        filmStorage.getFilmById(filmId);
+        Film film = filmStorage.getFilmById(filmId);
         userStorage.getUserById(userId);
+        eventStorage.addEvent(userId, EventType.LIKE, EventOperation.ADD, filmId);
+
+        Set<Integer> likedFilms = likesStorage.getLikedFilmsByUser(userId);
+        if (likedFilms.contains(filmId)) {
+            log.info("Пользователь {} уже поставил лайк фильму {}", userId, filmId);
+            return film;
+        }
+
         likesStorage.addLike(filmId, userId);
         log.info("Пользователь {} поставил лайк фильму {}", userId, filmId);
-        eventStorage.addEvent(userId, EventType.LIKE, EventOperation.ADD, filmId);
         return filmStorage.getFilmById(filmId);
     }
 

@@ -21,7 +21,7 @@ public class RatingRepository extends BaseRepository<Rating> implements RatingSt
                 """);
     }
 
-    public Rating getRatingById(int id) {
+    public Rating getRatingById(int  id) {
         return findOne("""
                 SELECT * FROM RATING WHERE RATING_ID = ?
                 """, id).get();
