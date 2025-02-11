@@ -1,18 +1,19 @@
 package ru.yandex.practicum.filmorate.service;
 
+import jakarta.validation.Valid;
 import jakarta.validation.ValidationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.dal.status.EventOperation;
+import ru.yandex.practicum.filmorate.dal.status.EventType;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.storage.*;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
-@SuppressWarnings("ALL")
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -24,31 +25,24 @@ public class FilmService {
     private final LikesStorage likesStorage;
     private final DirectorStorage directorStorage;
     private final RatingStorage ratingStorage;
+    private final EventStorage eventStorage;
 
-    public Film createFilm(Film film) {
-        // Проверка входных данных
-        if (film.getName() == null || film.getName().isBlank()) {
-            throw new ValidationException("Название фильма не может быть пустым.");
-        }
-        if (film.getDescription() == null || film.getDescription().isBlank() || film.getDescription().length() > 200) {
-            throw new ValidationException("Описание фильма не может быть пустым или превышать 200 символов.");
-        }
-        if (film.getReleaseDate() == null) {
-            throw new ValidationException("Дата релиза не может быть пустой.");
-        }
+    public Film createFilm(@Valid Film film) {
         // Проверяем существование рейтинга МПА
         if (!filmStorage.ratingExists(film.getMpa().getId())) {
             throw new NotFoundException("Рейтинг МПА с ID " + film.getMpa().getId() + " не найден");
         }
-        if(film.getGenres() != null && !film.getGenres().isEmpty()) {
+
+        if (film.getGenres() != null && !film.getGenres().isEmpty()) {
             film.getGenres().forEach(g -> genreStorage.getGenreById(g.getId()));
         }
-        if(film.getDirectors() != null && !film.getDirectors().isEmpty()) {
+
+        if (film.getDirectors() != null && !film.getDirectors().isEmpty()) {
             film.getDirectors().forEach(g -> directorStorage.getDirectorById(g.getId()));
         }
         // Создаем фильм
         filmStorage.createFilm(film);
-        film.setMpa(ratingStorage.getRatingById(film.getMpa().getId()).get());
+        film.setMpa(ratingStorage.getRatingById(film.getMpa().getId()));
 
         if (film.getGenres() != null) {
             genreStorage.createGenresForFilmById(film.getId(), film.getGenres().stream().toList());
@@ -59,23 +53,12 @@ public class FilmService {
             directorStorage.createDirectorsForFilmById(film.getId(), film.getDirectors().stream().toList());
             film.setDirectors(directorStorage.getDirectorsFilmById(film.getId()));
         }
-        return filmStorage.getFilmById(film.getId()).get();
+        return filmStorage.getFilmById(film.getId());
     }
 
-    public Film updateFilm(Film film) {
+    public Film updateFilm(@Valid Film film) {
         // Проверка существования фильма (метод getFilmById выбросит исключение, если фильм не найден)
-        filmStorage.getFilmById(film.getId())
-                .orElseThrow(() -> new NotFoundException("Фильм с id " + film.getId() + " не найден"));
-
-        if (film.getName() == null || film.getName().isBlank()) {
-            throw new ValidationException("Название фильма не может быть пустым.");
-        }
-        if (film.getDescription() == null || film.getDescription().isBlank() || film.getDescription().length() > 200) {
-            throw new ValidationException("Описание фильма не может быть пустым или превышать 200 символов.");
-        }
-        if (film.getReleaseDate() == null) {
-            throw new ValidationException("Дата релиза не может быть пустой.");
-        }
+        filmStorage.getFilmById(film.getId());
 
         // Проверяем существование рейтинга МПА
         if (!filmStorage.ratingExists(film.getMpa().getId())) {
@@ -105,10 +88,10 @@ public class FilmService {
 
         // Обновляем основные данные фильма
         filmStorage.updateFilm(film);
-        film.setMpa(ratingStorage.getRatingById(film.getMpa().getId()).get());
+        film.setMpa(ratingStorage.getRatingById(film.getMpa().getId()));
 
         // Возвращаем обновлённый фильм
-        return filmStorage.getFilmById(film.getId()).get();
+        return filmStorage.getFilmById(film.getId());
     }
 
     public Set<Film> getFilms() {
@@ -117,18 +100,18 @@ public class FilmService {
                 .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
-    public Film getFilmById(Integer id) {
-        Film film = filmStorage.getFilmById(id).get();
+    public Film getFilmById(int id) {
+        Film film = filmStorage.getFilmById(id);
         log.debug("Получен фильм: {}", film);
         return film;
     }
 
-    public void deleteFilm(Integer id) {
+    public void deleteFilm(int id) {
         filmStorage.deleteFilm(id);
         log.info("Удалён фильм с id: {}", id);
     }
 
-    public Set<Film> getTopFilms(Integer count, Integer genreId, Integer year) {
+    public Set<Film> getTopFilms(int count, Integer genreId, Integer year) {
         List<Film> films = filmStorage.getFilms();
 
         // Если задан параметр genreId – оставляем только те фильмы, у которых есть жанр с таким ID
@@ -161,7 +144,7 @@ public class FilmService {
         return topFilms;
     }
 
-    public Collection<Film> getCommonFilms(int userId, int friendId) {
+    public List<Film> getCommonFilms(int userId, int friendId) {
         // Проверка существования пользователей (метод getUserById выбросит исключение, если пользователь не найден)
         userStorage.getUserById(userId);
         userStorage.getUserById(friendId);
@@ -180,8 +163,8 @@ public class FilmService {
 
         // Получаем фильмы по ID из пересечения без использования findFilmsByIds:
         List<Film> commonFilms = userLikedFilms.stream()
-                .map(filmId -> filmStorage.getFilmById(filmId).get())
-                .collect(Collectors.toList());
+                .map(filmStorage::getFilmById)
+                .toList();
 
         // Сортируем фильмы по количеству лайков (популярности) по убыванию
         List<Film> sortedFilms = commonFilms.stream()
@@ -190,44 +173,84 @@ public class FilmService {
                         likesStorage.getLikeCountForFilm(f1.getId())
                 ))
                 .collect(Collectors.toList());
-
+        // Мы поспорили, нужен ли здесь LinkedList для сортировки, или она сохранится при использовании List
+        // Уважаемый ревьюер, прошу решить наш спор
         log.debug("Получены общие фильмы для пользователей {} и {}: {}", userId, friendId, sortedFilms);
         return sortedFilms;
     }
 
-//    public Collection<Film> getFilmsByDirector(int directorId, String sortBy) {
-//        if (directorStorage.getDirectorById(directorId) == null) {
-//            throw new NotFoundException("Режиссёр с ID " + directorId + " не найден");
-//        }
-//        Collection<Film> films = filmStorage.getByDirectorId(directorId, sortBy);
-//        log.debug("Получены фильмы режиссёра {} с сортировкой: {}", directorId, sortBy);
-//        return films;
-//    }
+    public List<Film> getFilmsByDirector(int directorId, String sortBy) {
+        // Проверка существования режиссёра
+        directorStorage.getDirectorById(directorId);
 
-//    public Collection<Film> getSearchFilms(String query, String by) {
-//        Collection<Film> films = filmStorage.getSearchFilms(query, by);
-//        log.debug("Результаты поиска по query={} и by={}: {}", query, by, films.size());
-//        return films;
-//    }
+        // Получаем фильмы режиссера через простой SQL-запрос
+        List<Film> films = filmStorage.getFilmsByDirector(directorId);
+        List<Film> filmList = new ArrayList<>(films);
 
-//    public Set<Integer> getLikedFilmsByUser(int userId) {
-//        Set<Integer> likedFilms = filmStorage.getLikedFilmsByUser(userId);
-//        log.debug("Пользователь {} лайкнул фильмы: {}", userId, likedFilms);
-//        return likedFilms;
-//    }
+        // Выполняем сортировку в зависимости от параметра sortBy
+        if ("year".equalsIgnoreCase(sortBy)) {
+            // Сортировка по году выпуска (по возрастанию)
+            filmList.sort(Comparator.comparing(Film::getReleaseDate));
+        } else if ("likes".equalsIgnoreCase(sortBy)) {
+            // Сортировка по количеству лайков (по убыванию)
+            filmList.sort((f1, f2) -> Integer.compare(
+                    likesStorage.getLikeCountForFilm(f2.getId()),
+                    likesStorage.getLikeCountForFilm(f1.getId())
+            ));
+        } else {
+            throw new ValidationException("Некорректный параметр сортировки: " + sortBy);
+        }
 
-    public Film likeFilm(Integer filmId, Integer userId) {
-        Film film = filmStorage.getFilmById(filmId).get();
-        userStorage.getUserById(userId);
-        likesStorage.addLike(filmId, userId);
-        log.info("Пользователь {} поставил лайк фильму {}", userId, filmId);
-        return filmStorage.getFilmById(filmId).get();
+        log.debug("Получены фильмы режиссера {} с сортировкой '{}': {}", directorId, sortBy, filmList);
+        return filmList;
     }
 
-    public void delLikeFilm(Integer filmId, Integer userId) {
-        filmStorage.getFilmById(filmId).get();
+    public List<Film> searchFilms(String query, String by) {
+        String searchParam = "%" + query.toLowerCase() + "%";
+        Set<Film> result = new HashSet<>();
+        String[] criteria = by.split(",");
+        for (String criterion : criteria) {
+            String trimmed = criterion.trim();
+            if ("title".equalsIgnoreCase(trimmed)) {
+                result.addAll(filmStorage.getFilmsByTitle(searchParam));
+            } else if ("director".equalsIgnoreCase(trimmed)) {
+                result.addAll(filmStorage.getFilmsByDirectorName(searchParam));
+            } else {
+                throw new ValidationException("Некорректное значение параметра 'by': " + trimmed);
+            }
+        }
+        // Сортировка по количеству лайков (популярности)
+        List<Film> sortedFilms = result.stream()
+                .sorted((f1, f2) -> Integer.compare(
+                        likesStorage.getLikeCountForFilm(f2.getId()),
+                        likesStorage.getLikeCountForFilm(f1.getId())
+                ))
+                .collect(Collectors.toList());
+        log.debug("Результаты поиска для query='{}', by='{}': {}", query, by, sortedFilms);
+        return sortedFilms;
+    }
+
+    public Film likeFilm(int filmId, int userId) {
+        Film film = filmStorage.getFilmById(filmId);
+        userStorage.getUserById(userId);
+        eventStorage.addEvent(userId, EventType.LIKE, EventOperation.ADD, filmId);
+
+        Set<Integer> likedFilms = likesStorage.getLikedFilmsByUser(userId);
+        if (likedFilms.contains(filmId)) {
+            log.info("Пользователь {} уже поставил лайк фильму {}", userId, filmId);
+            return film;
+        }
+
+        likesStorage.addLike(filmId, userId);
+        log.info("Пользователь {} поставил лайк фильму {}", userId, filmId);
+        return filmStorage.getFilmById(filmId);
+    }
+
+    public void delLikeFilm(int filmId, int userId) {
+        filmStorage.getFilmById(filmId);
         userStorage.getUserById(userId);
         likesStorage.deleteLike(filmId, userId);
         log.info("Пользователь {} убрал лайк с фильма {}", userId, filmId);
+        eventStorage.addEvent(userId, EventType.LIKE, EventOperation.REMOVE, filmId);
     }
 }

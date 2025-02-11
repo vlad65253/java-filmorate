@@ -1,6 +1,5 @@
 package ru.yandex.practicum.filmorate.dal;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -16,12 +15,8 @@ import java.util.stream.Collectors;
 @Repository
 public class DirectorRepository extends BaseRepository<Director> implements DirectorStorage {
 
-    private final JdbcTemplate jdbc;
-
-    @Autowired
     public DirectorRepository(JdbcTemplate jdbc, RowMapper<Director> mapper) {
         super(jdbc, mapper);
-        this.jdbc = jdbc;
     }
 
     @Override
@@ -32,13 +27,13 @@ public class DirectorRepository extends BaseRepository<Director> implements Dire
     }
 
     @Override
-    public Optional<Director> getDirectorById(int id) {
+    public Director getDirectorById(int id) {
         return findOne("""
                 SELECT
                 DIRECTOR_ID,
                 DIRECTOR_NAME
                 FROM DIRECTORS WHERE DIRECTOR_ID = ?
-                """, id);
+                """, id).get();
     }
 
     @Override
@@ -60,13 +55,13 @@ public class DirectorRepository extends BaseRepository<Director> implements Dire
 
     @Override
     public void deleteDirectorById(int id) {
-        jdbc.update("""
+        update("""
                 DELETE FROM DIRECTORS WHERE DIRECTOR_ID = ?
                 """, id);
     }
 
     @Override
-    public void createDirectorsForFilmById(int filmId, List<Director> directorsId) {
+    public void createDirectorsForFilmById(int filmId, List<Director> directors) {
         batchUpdateBase("""
                         INSERT INTO DIRECTORS_SAVE(FILM_ID, DIRECTOR_ID)
                         VALUES (?, ?)
@@ -76,12 +71,12 @@ public class DirectorRepository extends BaseRepository<Director> implements Dire
                     @Override
                     public void setValues(PreparedStatement ps, int i) throws SQLException {
                         ps.setLong(1, filmId);
-                        ps.setLong(2, directorsId.get(i).getId());
+                        ps.setLong(2, directors.get(i).getId());
                     }
 
                     @Override
                     public int getBatchSize() {
-                        return directorsId.size();
+                        return directors.size();
                     }
                 }
         );

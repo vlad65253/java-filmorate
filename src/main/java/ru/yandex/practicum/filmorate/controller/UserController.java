@@ -11,7 +11,7 @@ import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
 
 import java.util.Collection;
-import java.util.Set;
+import java.util.List;
 
 @RestController
 @RequestMapping("/users")
@@ -42,40 +42,41 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    public User getUser(@PathVariable Integer id) {
+    public User getUser(@PathVariable int id) {
         return userService.getUserById(id);
     }
 
     @GetMapping("/{id}/friends")
-    public Collection<User> getFriendsForUser(@PathVariable Integer id) {
+    public Collection<User> getFriendsForUser(@PathVariable int id) {
         return userService.getFriends(id);
     }
 
     @GetMapping("/{id}/friends/common/{otherId}")
-    public Collection<User> getCommonFriends(@PathVariable Integer id, @PathVariable Integer otherId) {
+    public Collection<User> getCommonFriends(@PathVariable int id, @PathVariable int otherId) {
         return userService.getCommonFriend(id, otherId);
     }
 
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/{id}/friends/{friendId}")
-    public void deleteFriend(@PathVariable("id") Integer id, @PathVariable("friendId") Integer friendId) {
+    public void deleteFriend(@PathVariable("id") int id, @PathVariable("friendId") int friendId) {
         userService.deleteFriend(id, friendId);
     }
 
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable Integer id) {
+    public void delete(@PathVariable int id) {
         userService.deleteUser(id);
     }
 
-//    @GetMapping("/{id}/recommendations")
-//    public Collection<Film> getRecommendations(@PathVariable Integer id) {
-//        return userService.getRecommendations(id);
-//    }
+    @GetMapping("/{id}/recommendations")
+    public Collection<Film> getRecommendations(@PathVariable("id") int userId) {
+        log.info("Получение рекомендаций для пользователя с id={}", userId);
+        return userService.getRecommendations(userId);
+    }
 
     /*GET /users/{id}/feed*/
     @GetMapping("/{id}/feed")
-    public Set<Event> getFeedUserById(@PathVariable Integer id) {
+    public List<Event> getFeedUserById(@PathVariable int id) {
         return userService.getFeedUserById(id);
     }
 }

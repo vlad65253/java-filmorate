@@ -1,13 +1,11 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import jakarta.validation.Valid;
-import jakarta.validation.ValidationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.enums.FilmFilters;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
 import java.util.Collection;
@@ -30,11 +28,6 @@ public class FilmController {
     public Film updateFilm(@RequestBody Film film) {
         return filmService.updateFilm(film);
     }
-
-//    @PutMapping("/{id}/like/{userId}")
-//    public Film likingFilm(@PathVariable int id, @PathVariable int userId) {
-//        return filmService.likeFilm(id, userId);
-//    }
 
     @GetMapping
     public Collection<Film> getFilms() {
@@ -65,11 +58,14 @@ public class FilmController {
         filmService.deleteFilm(id);
     }
 
-//    @GetMapping("/director/{directorId}")
-//    public Collection<Film> getFilmsByDirector(@PathVariable int directorId,
-//                                               @RequestParam(defaultValue = "year") String sortBy) {
-//        return filmService.getFilmsByDirector(directorId, sortBy);
-//    }
+    @GetMapping("/director/{directorId}")
+    public Collection<Film> getFilmsByDirector(
+            @PathVariable int directorId,
+            @RequestParam(defaultValue = "year") String sortBy
+    ) {
+        log.info("Запрос фильмов режиссера {} с сортировкой по {}", directorId, sortBy);
+        return filmService.getFilmsByDirector(directorId, sortBy);
+    }
 
 
     @GetMapping("/common")
@@ -81,18 +77,15 @@ public class FilmController {
     /*GET /films/popular?count={limit}&genreId={genreId}&year={year}*/
     @GetMapping("/popular")
     public Set<Film> getPopularFilms(
-            @RequestParam(defaultValue = "10") Integer count,
+            @RequestParam(defaultValue = "10") int count,
             @RequestParam(required = false) Integer genreId,
             @RequestParam(required = false) Integer year) {
         return filmService.getTopFilms(count, genreId, year);
     }
 
-//    @GetMapping("/search")
-//    public Collection<Film> getSearchFilms(@RequestParam String query,
-//                                           @RequestParam String by) {
-//        if (FilmFilters.from(by) == null) {
-//            throw new ValidationException("Указано неверное значение критерия поиска (by)");
-//        }
-//        return filmService.getSearchFilms(query, by);
-//    }
+    @GetMapping("/search")
+    public Collection<Film> searchFilms(@RequestParam String query, @RequestParam String by) {
+        log.info("Поиск фильмов по запросу '{}' с критерием '{}'", query, by);
+        return filmService.searchFilms(query, by);
+    }
 }

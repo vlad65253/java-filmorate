@@ -1,24 +1,18 @@
 package ru.yandex.practicum.filmorate.dal;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.mapper.ReviewRowMapper;
 import ru.yandex.practicum.filmorate.model.Review;
 import ru.yandex.practicum.filmorate.storage.ReviewStorage;
 
 import java.util.List;
-import java.util.Optional;
 
 @Repository
 public class ReviewRepository extends BaseRepository<Review> implements ReviewStorage {
 
-    private final JdbcTemplate jdbc;
-
     public ReviewRepository(JdbcTemplate jdbc, ReviewRowMapper mapper) {
         super(jdbc, mapper);
-        this.jdbc = jdbc;
     }
 
     // Создание нового отзыва
@@ -51,17 +45,17 @@ public class ReviewRepository extends BaseRepository<Review> implements ReviewSt
                 review.getIsPositive(),
                 review.getReviewId());
 
-        return getReviewById(review.getReviewId()).get();
+        return getReviewById(review.getReviewId());
     }
 
     // Получение отзыва по ID
     @Override
-    public Optional<Review> getReviewById(int reviewId) {
+    public Review getReviewById(int reviewId) {
         return findOne("""
                 SELECT REVIEW_ID, USER_ID, FILM_ID, CONTENT, IS_POSITIVE, USEFUL
                 FROM REVIEWS
                 WHERE REVIEW_ID = ?
-                """, reviewId);
+                """, reviewId).get();
     }
 
     /**
@@ -91,8 +85,8 @@ public class ReviewRepository extends BaseRepository<Review> implements ReviewSt
 
     // Удаление отзыва по ID
     @Override
-    public boolean deleteReview(int reviewId) {
-        return delete("DELETE FROM REVIEWS WHERE REVIEW_ID = ?", reviewId);
+    public void deleteReview(int reviewId) {
+        delete("DELETE FROM REVIEWS WHERE REVIEW_ID = ?", reviewId);
     }
 
     // Методы для работы с лайками и дизлайками
