@@ -14,6 +14,7 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Rating;
 import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.storage.EventStorage;
 
 import java.time.LocalDate;
 import java.util.Set;
@@ -36,7 +37,9 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
         UserRowMapper.class,
         GenreRepository.class,
         DirectorRepository.class,
-        UserRepository.class
+        UserRepository.class,
+        EventRepository.class,
+        EventRowMapper.class
         })
 class FilmRepositoryTest {
     private static Film film1;
@@ -55,7 +58,6 @@ class FilmRepositoryTest {
                 .duration(100)
                 .mpa(new Rating(1, "G"))
                 .genres(Set.of(new Genre(1, "Комедия")))
-                .likedList(Set.of(15, 2, 7, 3))
                 .directors(Set.of(new Director(2, "name")))
                 .build();
 
@@ -66,7 +68,6 @@ class FilmRepositoryTest {
                 .duration(100)
                 .mpa(new Rating(2, "PG"))
                 .genres(Set.of(new Genre(2, "Драма")))
-                .likedList(Set.of(1, 2, 7, 3))
                 .directors(Set.of(new Director(2, "name")))
                 .build();
 
@@ -77,7 +78,6 @@ class FilmRepositoryTest {
                 .duration(100)
                 .mpa(new Rating(3, "PG-13"))
                 .genres(Set.of(new Genre(6, "Боевик")))
-                .likedList(Set.of(1, 15, 2, 7, 3))
                 .directors(Set.of(new Director(2, "name")))
                 .build();
     }
@@ -128,7 +128,6 @@ class FilmRepositoryTest {
                 .duration(100)
                 .mpa(new Rating(2, "PG"))
                 .genres(Set.of(new Genre(1, "Комедия")))
-                .likedList(Set.of())
                 .directors(Set.of(new Director(2, "name")))
                 .build();
 
