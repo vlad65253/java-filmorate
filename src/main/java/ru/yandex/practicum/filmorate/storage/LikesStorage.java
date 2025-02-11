@@ -13,5 +13,5 @@ public interface LikesStorage {
 
     Set<Integer> getLikedFilmsByUser(int userId);
 
-    public Map<Integer, Long> getCommonLikes(String sql, Object[] params);
+    Map<Integer, Long> getCommonLikes(String sql, Object[] params);
 }
