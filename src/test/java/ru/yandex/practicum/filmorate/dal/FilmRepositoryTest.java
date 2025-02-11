@@ -40,7 +40,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
         UserRepository.class,
         EventRepository.class,
         EventRowMapper.class
-        })
+})
 class FilmRepositoryTest {
     private static Film film1;
     private static Film film2;
