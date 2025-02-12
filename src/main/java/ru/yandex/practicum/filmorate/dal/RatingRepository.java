@@ -21,12 +21,16 @@ public class RatingRepository extends BaseRepository<Rating> implements RatingSt
                 """);
     }
 
-    public Rating getRatingById(int  id) {
+    public Rating getRatingById(int id) {
         return findOne("""
                 SELECT * FROM RATING WHERE RATING_ID = ?
                 """, id).get();
 
     }
 
+    public boolean ratingExists(Integer ratingId) {
+        Integer count = jdbc.queryForObject("SELECT COUNT(*) FROM RATING WHERE RATING_ID = ?", Integer.class, ratingId);
+        return count <= 0;
+    }
 
 }

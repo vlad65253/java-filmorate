@@ -24,6 +24,8 @@ public class UserService {
     private final EventStorage eventStorage;
     private final LikesStorage likesStorage;
     private final FilmStorage filmStorage;
+    private final DirectorStorage directorStorage;
+    private final GenreStorage genreStorage;
 
     public User createUser(@Valid User user) {
         if (user.getName() == null || user.getName().isBlank()) {
@@ -79,6 +81,7 @@ public class UserService {
 
     public List<Film> getRecommendations(int userId) {
         Set<Integer> userLikedFilms = likesStorage.getLikedFilmsByUser(userId);
+
         if (userLikedFilms.isEmpty()) {
             log.info("Пользователь с id {} не поставил ни одного лайка, рекомендации отсутствуют", userId);
             return Collections.emptyList();
@@ -111,6 +114,10 @@ public class UserService {
 
         List<Film> recommendedFilms = similarUserLikedFilms.stream()
                 .map(filmStorage::getFilmById)
+                .peek(film -> {
+                    film.setDirectors(directorStorage.getDirectorsFilmById(film.getId()));
+                    film.setGenres(genreStorage.getGenresFilmById(film.getId()));
+                })
                 .toList();
 
         List<Film> sortedFilms = recommendedFilms.stream()
@@ -118,6 +125,10 @@ public class UserService {
                         likesStorage.getLikeCountForFilm(f2.getId()),
                         likesStorage.getLikeCountForFilm(f1.getId())
                 ))
+                .peek(film -> {
+                    film.setDirectors(directorStorage.getDirectorsFilmById(film.getId()));
+                    film.setGenres(genreStorage.getGenresFilmById(film.getId()));
+                })
                 .collect(Collectors.toCollection(LinkedList::new));
 
         log.debug("Рекомендации для пользователя {} на основе предпочтений пользователя {}: {}",

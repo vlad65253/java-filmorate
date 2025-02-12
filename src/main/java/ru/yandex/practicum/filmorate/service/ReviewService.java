@@ -61,8 +61,7 @@ public class ReviewService {
 
     // Получение списка отзывов
     public List<Review> getReviews(Integer filmId, Integer count) {
-        int limit = (count == null) ? 10 : count;
-        List<Review> reviews = reviewStorage.getReviewsByFilmId(filmId, limit);
+        List<Review> reviews = reviewStorage.getReviewsByFilmId(filmId, count);
         log.info("Получено {} отзывов (filmId = {})", reviews.size(), filmId);
         return reviews;
     }

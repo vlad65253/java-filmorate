@@ -9,6 +9,7 @@ import ru.yandex.practicum.filmorate.dal.status.EventOperation;
 import ru.yandex.practicum.filmorate.dal.status.EventType;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.service.enums.SortedBy;
 import ru.yandex.practicum.filmorate.storage.*;
 
 import java.util.*;
@@ -27,9 +28,9 @@ public class FilmService {
     private final RatingStorage ratingStorage;
     private final EventStorage eventStorage;
 
-    public Film createFilm(@Valid Film film) {
+    public Film createFilm(Film film) {
         // Проверяем существование рейтинга МПА
-        if (!filmStorage.ratingExists(film.getMpa().getId())) {
+        if (ratingStorage.ratingExists(film.getMpa().getId())) {
             throw new NotFoundException("Рейтинг МПА с ID " + film.getMpa().getId() + " не найден");
         }
 
@@ -41,7 +42,7 @@ public class FilmService {
             film.getDirectors().forEach(g -> directorStorage.getDirectorById(g.getId()));
         }
         // Создаем фильм
-        filmStorage.createFilm(film);
+        Film createFilm = filmStorage.createFilm(film);
         film.setMpa(ratingStorage.getRatingById(film.getMpa().getId()));
 
         if (film.getGenres() != null) {
@@ -53,7 +54,7 @@ public class FilmService {
             directorStorage.createDirectorsForFilmById(film.getId(), film.getDirectors().stream().toList());
             film.setDirectors(directorStorage.getDirectorsFilmById(film.getId()));
         }
-        return filmStorage.getFilmById(film.getId());
+        return film;
     }
 
     public Film updateFilm(@Valid Film film) {
@@ -61,28 +62,26 @@ public class FilmService {
         filmStorage.getFilmById(film.getId());
 
         // Проверяем существование рейтинга МПА
-        if (!filmStorage.ratingExists(film.getMpa().getId())) {
+        if (ratingStorage.ratingExists(film.getMpa().getId())) {
             throw new NotFoundException("Рейтинг МПА с ID " + film.getMpa().getId() + " не найден");
         }
 
         // Если жанры заданы и список не пустой – обновляем их,
         // иначе (если список пуст или равен null) – просто удаляем все привязанные жанры.
+        genreStorage.deleteGenreForFilmById(film.getId());
         if (film.getGenres() != null && !film.getGenres().isEmpty()) {
-            genreStorage.deleteGenreForFilmById(film.getId());
             genreStorage.createGenresForFilmById(film.getId(), film.getGenres().stream().toList());
             film.setGenres(genreStorage.getGenresFilmById(film.getId()));
         } else {
-            genreStorage.deleteGenreForFilmById(film.getId());
             film.setGenres(Collections.emptySet());
         }
 
         // Аналогичная логика для режиссёров (если требуется). Здесь можно оставить как есть, либо аналогично:
+        directorStorage.deleteDirectorsFilmById(film.getId());
         if (film.getDirectors() != null && !film.getDirectors().isEmpty()) {
-            directorStorage.deleteDirectorsFilmById(film.getId());
             directorStorage.createDirectorsForFilmById(film.getId(), film.getDirectors().stream().toList());
             film.setDirectors(directorStorage.getDirectorsFilmById(film.getId()));
         } else {
-            directorStorage.deleteDirectorsFilmById(film.getId());
             film.setDirectors(Collections.emptySet());
         }
 
@@ -91,17 +90,24 @@ public class FilmService {
         film.setMpa(ratingStorage.getRatingById(film.getMpa().getId()));
 
         // Возвращаем обновлённый фильм
-        return filmStorage.getFilmById(film.getId());
+        return film;
     }
 
     public Set<Film> getFilms() {
         return filmStorage.getFilms().stream()
                 .sorted(Comparator.comparing(Film::getId))
+                .peek(film -> {
+                    film.setDirectors(directorStorage.getDirectorsFilmById(film.getId()));
+                    film.setGenres(genreStorage.getGenresFilmById(film.getId()));
+                })
                 .collect(Collectors.toCollection(LinkedHashSet::new));
+
     }
 
     public Film getFilmById(int id) {
         Film film = filmStorage.getFilmById(id);
+        film.setDirectors(directorStorage.getDirectorsFilmById(film.getId()));
+        film.setGenres(genreStorage.getGenresFilmById(film.getId()));
         log.debug("Получен фильм: {}", film);
         return film;
     }
@@ -112,13 +118,23 @@ public class FilmService {
     }
 
     public Set<Film> getTopFilms(int count, Integer genreId, Integer year) {
-        List<Film> films = filmStorage.getFilms();
+        List<Film> films = filmStorage.getFilms().stream()
+                .peek(film -> {
+                    film.setDirectors(directorStorage.getDirectorsFilmById(film.getId()));
+                    film.setGenres(genreStorage.getGenresFilmById(film.getId()));
+                })
+                .collect(Collectors.toList());
+        ;
 
         // Если задан параметр genreId – оставляем только те фильмы, у которых есть жанр с таким ID
         if (genreId != null) {
             films = films.stream()
                     .filter(film -> film.getGenres() != null &&
                             film.getGenres().stream().anyMatch(genre -> genre.getId().equals(genreId)))
+                    .peek(film -> {
+                        film.setDirectors(directorStorage.getDirectorsFilmById(film.getId()));
+                        film.setGenres(genreStorage.getGenresFilmById(film.getId()));
+                    })
                     .collect(Collectors.toList());
         }
 
@@ -127,6 +143,10 @@ public class FilmService {
             films = films.stream()
                     .filter(film -> film.getReleaseDate() != null &&
                             film.getReleaseDate().getYear() == year)
+                    .peek(film -> {
+                        film.setDirectors(directorStorage.getDirectorsFilmById(film.getId()));
+                        film.setGenres(genreStorage.getGenresFilmById(film.getId()));
+                    })
                     .collect(Collectors.toList());
         }
 
@@ -138,6 +158,10 @@ public class FilmService {
 
         Set<Film> topFilms = films.stream()
                 .limit(count)
+                .peek(film -> {
+                    film.setDirectors(directorStorage.getDirectorsFilmById(film.getId()));
+                    film.setGenres(genreStorage.getGenresFilmById(film.getId()));
+                })
                 .collect(Collectors.toCollection(LinkedHashSet::new));
 
         log.debug("Получены топ-{} фильмов по лайкам с genreId={} и year={}: {}", count, genreId, year, topFilms);
@@ -172,6 +196,10 @@ public class FilmService {
                         likesStorage.getLikeCountForFilm(f2.getId()),
                         likesStorage.getLikeCountForFilm(f1.getId())
                 ))
+                .peek(film -> {
+                    film.setDirectors(directorStorage.getDirectorsFilmById(film.getId()));
+                    film.setGenres(genreStorage.getGenresFilmById(film.getId()));
+                })
                 .collect(Collectors.toList());
         // Мы поспорили, нужен ли здесь LinkedList для сортировки, или она сохранится при использовании List
         // Уважаемый ревьюер, прошу решить наш спор
@@ -188,19 +216,32 @@ public class FilmService {
         List<Film> filmList = new ArrayList<>(films);
 
         // Выполняем сортировку в зависимости от параметра sortBy
-        if ("year".equalsIgnoreCase(sortBy)) {
+        if (SortedBy.from(sortBy) == SortedBy.YEAR) {
             // Сортировка по году выпуска (по возрастанию)
             filmList.sort(Comparator.comparing(Film::getReleaseDate));
-        } else if ("likes".equalsIgnoreCase(sortBy)) {
-            // Сортировка по количеству лайков (по убыванию)
-            filmList.sort((f1, f2) -> Integer.compare(
-                    likesStorage.getLikeCountForFilm(f2.getId()),
-                    likesStorage.getLikeCountForFilm(f1.getId())
-            ));
+            filmList.stream()
+                    .peek(film -> {
+                        film.setDirectors(directorStorage.getDirectorsFilmById(film.getId()));
+                        film.setGenres(genreStorage.getGenresFilmById(film.getId()));
+                    })
+                    .collect(Collectors.toList());
         } else {
-            throw new ValidationException("Некорректный параметр сортировки: " + sortBy);
+            if (SortedBy.from(sortBy) == SortedBy.LIKES) {
+                // Сортировка по количеству лайков (по убыванию)
+                filmList.sort((f1, f2) -> Integer.compare(
+                        likesStorage.getLikeCountForFilm(f2.getId()),
+                        likesStorage.getLikeCountForFilm(f1.getId())
+                ));
+            } else {
+                throw new ValidationException("Некорректный параметр сортировки: " + sortBy);
+            }
+            filmList.stream()
+                    .peek(film -> {
+                        film.setDirectors(directorStorage.getDirectorsFilmById(film.getId()));
+                        film.setGenres(genreStorage.getGenresFilmById(film.getId()));
+                    })
+                    .collect(Collectors.toList());
         }
-
         log.debug("Получены фильмы режиссера {} с сортировкой '{}': {}", directorId, sortBy, filmList);
         return filmList;
     }
@@ -225,6 +266,10 @@ public class FilmService {
                         likesStorage.getLikeCountForFilm(f2.getId()),
                         likesStorage.getLikeCountForFilm(f1.getId())
                 ))
+                .peek(film -> {
+                    film.setDirectors(directorStorage.getDirectorsFilmById(film.getId()));
+                    film.setGenres(genreStorage.getGenresFilmById(film.getId()));
+                })
                 .collect(Collectors.toList());
         log.debug("Результаты поиска для query='{}', by='{}': {}", query, by, sortedFilms);
         return sortedFilms;

@@ -19,9 +19,9 @@ public class ReviewRepository extends BaseRepository<Review> implements ReviewSt
     @Override
     public Review createReview(Review review) {
         int id = insert("""
-                INSERT INTO REVIEWS (USER_ID, FILM_ID, CONTENT, IS_POSITIVE, USEFUL)
-                VALUES (?, ?, ?, ?, ?)
-                """,
+                        INSERT INTO REVIEWS (USER_ID, FILM_ID, CONTENT, IS_POSITIVE, USEFUL)
+                        VALUES (?, ?, ?, ?, ?)
+                        """,
                 review.getUserId(),
                 review.getFilmId(),
                 review.getContent(),
@@ -37,10 +37,10 @@ public class ReviewRepository extends BaseRepository<Review> implements ReviewSt
     @Override
     public Review updateReview(Review review) {
         update("""
-                UPDATE REVIEWS
-                SET CONTENT = ?, IS_POSITIVE = ?
-                WHERE REVIEW_ID = ?
-                """,
+                        UPDATE REVIEWS
+                        SET CONTENT = ?, IS_POSITIVE = ?
+                        WHERE REVIEW_ID = ?
+                        """,
                 review.getContent(),
                 review.getIsPositive(),
                 review.getReviewId());
