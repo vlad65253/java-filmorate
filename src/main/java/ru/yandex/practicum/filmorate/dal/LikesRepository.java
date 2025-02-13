@@ -34,14 +34,4 @@ public class LikesRepository extends BaseRepository<Film> implements LikesStorag
     public Set<Integer> getLikedFilmsByUser(int userId) {
         return new HashSet<>(jdbc.queryForList("SELECT FILM_ID FROM LIKE_LIST WHERE USER_ID = ?", Integer.class, userId));
     }
-
-    public Map<Integer, Long> getCommonLikes(String sql, Object[] params) {
-        return jdbc.query(sql, params, rs -> {
-            Map<Integer, Long> result = new HashMap<>();
-            while (rs.next()) {
-                result.put(rs.getInt("USER_ID"), rs.getLong("COMMON_LIKES"));
-            }
-            return result;
-        });
-    }
 }

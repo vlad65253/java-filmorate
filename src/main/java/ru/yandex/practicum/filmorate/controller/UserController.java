@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.service.UserService;
 
 import java.util.Collection;
@@ -19,6 +20,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UserController {
     private final UserService userService;
+    private final FilmService filmService;
 
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping
@@ -71,7 +73,7 @@ public class UserController {
     @GetMapping("/{id}/recommendations")
     public Collection<Film> getRecommendations(@PathVariable("id") int userId) {
         log.info("Получение рекомендаций для пользователя с id={}", userId);
-        return userService.getRecommendations(userId);
+        return filmService.getRecommendations(userId);
     }
 
     /*GET /users/{id}/feed*/
