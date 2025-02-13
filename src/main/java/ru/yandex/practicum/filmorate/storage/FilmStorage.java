@@ -16,10 +16,11 @@ public interface FilmStorage {
 
     void deleteFilm(int id);
 
-
     List<Film> getFilmsByDirector(int directorId);
 
     List<Film> getFilmsByTitle(String searchQuery);
 
     List<Film> getFilmsByDirectorName(String searchQuery);
+
+    List<Film> getRecommendations(long userId);
 }
