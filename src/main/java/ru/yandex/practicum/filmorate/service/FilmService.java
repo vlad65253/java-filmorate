@@ -98,7 +98,7 @@ public class FilmService {
 
     public Set<Film> getFilms() {
         List<Film> films = filmStorage.getFilms();
-        films = addAtribytesForFilm(films);
+        films = getAttributesForFilm(films);
         return films.stream()
                 .sorted(Comparator.comparing(Film::getId))
                 .collect(Collectors.toCollection(LinkedHashSet::new));
@@ -121,7 +121,7 @@ public class FilmService {
 
     public Set<Film> getTopFilms(int count, Integer genreId, Integer year) {
         List<Film> films = filmStorage.getFilms();
-        films = addAtribytesForFilm(films);
+        films = getAttributesForFilm(films);
         if (genreId != null) {
             films = films.stream()
                     .filter(film -> film.getGenres().stream().anyMatch(genre -> genre.getId().equals(genreId)))
@@ -163,7 +163,7 @@ public class FilmService {
                 ))
                 .collect(Collectors.toList());
         log.debug("Получены общие фильмы для пользователей {} и {}: {}", userId, friendId, sortedFilms);
-        return addAtribytesForFilm(sortedFilms);
+        return getAttributesForFilm(sortedFilms);
     }
 
     public List<Film> getFilmsByDirector(int directorId, String sortBy) {
@@ -181,7 +181,7 @@ public class FilmService {
             throw new ValidationException("Некорректный параметр сортировки: " + sortBy);
         }
         log.debug("Получены фильмы режиссёра {} с сортировкой '{}': {}", directorId, sortBy, filmList);
-        return addAtribytesForFilm(filmList);
+        return getAttributesForFilm(filmList);
     }
 
     public List<Film> searchFilms(String query, String by) {
@@ -207,7 +207,7 @@ public class FilmService {
                 ))
                 .collect(Collectors.toList());
         log.debug("Результаты поиска для query='{}', by='{}': {}", query, by, sortedFilms);
-        return addAtribytesForFilm(sortedFilms);
+        return getAttributesForFilm(sortedFilms);
     }
 
     public Film likeFilm(int filmId, int userId) {
@@ -240,10 +240,10 @@ public class FilmService {
             return recommendedFilms;
         }
         log.info("Получены рекомендации для пользователя с ID {}: {}", userId, recommendedFilms);
-        return addAtribytesForFilm(recommendedFilms);
+        return getAttributesForFilm(recommendedFilms);
     }
 
-    public List<Film> addAtribytesForFilm(List<Film> films) {
+    public List<Film> getAttributesForFilm(List<Film> films) {
         Set<Integer> filmIds = films.stream()
                 .map(Film::getId)
                 .collect(Collectors.toSet());
