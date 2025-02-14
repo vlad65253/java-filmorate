@@ -98,17 +98,7 @@ public class FilmService {
 
     public Set<Film> getFilms() {
         List<Film> films = filmStorage.getFilms();
-        Set<Integer> filmIds = films.stream()
-                .map(Film::getId)
-                .collect(Collectors.toSet());
-        Map<Integer, Set<Genre>> genresMap = genreStorage.getGenresForFilmIds(filmIds);
-        Map<Integer, Set<Director>> directorsMap = directorStorage.getDirectorsForFilmIds(filmIds);
-        films.forEach(film -> {
-            film.setGenres(genresMap.getOrDefault(film.getId(), Collections.emptySet())
-                    .stream().sorted(Comparator.comparing(Genre::getId))
-                    .collect(Collectors.toCollection(LinkedHashSet::new)));
-            film.setDirectors(directorsMap.getOrDefault(film.getId(), Collections.emptySet()));
-        });
+        films = addAtribytesForFilm(films);
         return films.stream()
                 .sorted(Comparator.comparing(Film::getId))
                 .collect(Collectors.toCollection(LinkedHashSet::new));
@@ -131,17 +121,7 @@ public class FilmService {
 
     public Set<Film> getTopFilms(int count, Integer genreId, Integer year) {
         List<Film> films = filmStorage.getFilms();
-        Set<Integer> filmIds = films.stream()
-                .map(Film::getId)
-                .collect(Collectors.toSet());
-        Map<Integer, Set<Genre>> genresMap = genreStorage.getGenresForFilmIds(filmIds);
-        Map<Integer, Set<Director>> directorsMap = directorStorage.getDirectorsForFilmIds(filmIds);
-        films.forEach(film -> {
-            film.setGenres(genresMap.getOrDefault(film.getId(), Collections.emptySet())
-                    .stream().sorted(Comparator.comparing(Genre::getId))
-                    .collect(Collectors.toCollection(LinkedHashSet::new)));
-            film.setDirectors(directorsMap.getOrDefault(film.getId(), Collections.emptySet()));
-        });
+        films = addAtribytesForFilm(films);
         if (genreId != null) {
             films = films.stream()
                     .filter(film -> film.getGenres().stream().anyMatch(genre -> genre.getId().equals(genreId)))
@@ -176,12 +156,6 @@ public class FilmService {
         List<Film> commonFilms = userLikedFilms.stream()
                 .map(filmStorage::getFilmById)
                 .toList();
-        commonFilms.forEach(film -> {
-            film.setGenres(genreStorage.getGenresByFilmId(film.getId())
-                    .stream().sorted(Comparator.comparing(Genre::getId))
-                    .collect(Collectors.toCollection(LinkedHashSet::new)));
-            film.setDirectors(directorStorage.getDirectorsFilmById(film.getId()));
-        });
         List<Film> sortedFilms = commonFilms.stream()
                 .sorted((f1, f2) -> Integer.compare(
                         likesStorage.getLikeCountForFilm(f2.getId()),
@@ -189,7 +163,7 @@ public class FilmService {
                 ))
                 .collect(Collectors.toList());
         log.debug("Получены общие фильмы для пользователей {} и {}: {}", userId, friendId, sortedFilms);
-        return sortedFilms;
+        return addAtribytesForFilm(sortedFilms);
     }
 
     public List<Film> getFilmsByDirector(int directorId, String sortBy) {
@@ -206,14 +180,8 @@ public class FilmService {
         } else {
             throw new ValidationException("Некорректный параметр сортировки: " + sortBy);
         }
-        filmList.forEach(film -> {
-            film.setGenres(genreStorage.getGenresByFilmId(film.getId())
-                    .stream().sorted(Comparator.comparing(Genre::getId))
-                    .collect(Collectors.toCollection(LinkedHashSet::new)));
-            film.setDirectors(directorStorage.getDirectorsFilmById(film.getId()));
-        });
         log.debug("Получены фильмы режиссёра {} с сортировкой '{}': {}", directorId, sortBy, filmList);
-        return filmList;
+        return addAtribytesForFilm(filmList);
     }
 
     public List<Film> searchFilms(String query, String by) {
@@ -238,14 +206,8 @@ public class FilmService {
                         likesStorage.getLikeCountForFilm(f1.getId())
                 ))
                 .collect(Collectors.toList());
-        sortedFilms.forEach(film -> {
-            film.setGenres(genreStorage.getGenresByFilmId(film.getId())
-                    .stream().sorted(Comparator.comparing(Genre::getId))
-                    .collect(Collectors.toCollection(LinkedHashSet::new)));
-            film.setDirectors(directorStorage.getDirectorsFilmById(film.getId()));
-        });
         log.debug("Результаты поиска для query='{}', by='{}': {}", query, by, sortedFilms);
-        return sortedFilms;
+        return addAtribytesForFilm(sortedFilms);
     }
 
     public Film likeFilm(int filmId, int userId) {
@@ -277,19 +239,22 @@ public class FilmService {
             log.info("Нет рекомендованных фильмов для пользователя с ID {}", userId);
             return recommendedFilms;
         }
-        Set<Integer> filmIds = recommendedFilms.stream()
+        log.info("Получены рекомендации для пользователя с ID {}: {}", userId, recommendedFilms);
+        return addAtribytesForFilm(recommendedFilms);
+    }
+
+    public List<Film> addAtribytesForFilm(List<Film> films) {
+        Set<Integer> filmIds = films.stream()
                 .map(Film::getId)
                 .collect(Collectors.toSet());
         Map<Integer, Set<Genre>> genresMap = genreStorage.getGenresForFilmIds(filmIds);
         Map<Integer, Set<Director>> directorsMap = directorStorage.getDirectorsForFilmIds(filmIds);
-        recommendedFilms.forEach(film -> {
-            Set<Genre> sortedGenres = genresMap.getOrDefault(film.getId(), Collections.emptySet())
+        films.forEach(film -> {
+            film.setGenres(genresMap.getOrDefault(film.getId(), Collections.emptySet())
                     .stream().sorted(Comparator.comparing(Genre::getId))
-                    .collect(Collectors.toCollection(LinkedHashSet::new));
-            film.setGenres(sortedGenres);
+                    .collect(Collectors.toCollection(LinkedHashSet::new)));
             film.setDirectors(directorsMap.getOrDefault(film.getId(), Collections.emptySet()));
         });
-        log.info("Получены рекомендации для пользователя с ID {}: {}", userId, recommendedFilms);
-        return recommendedFilms;
+        return films;
     }
 }
