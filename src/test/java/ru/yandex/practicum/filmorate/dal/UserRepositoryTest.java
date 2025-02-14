@@ -25,12 +25,12 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
         UserRowMapper.class,
         FriendshipRepository.class})
 class UserRepositoryTest {
-    private final UserRepository userRepository;
-    @Autowired
-    private FriendshipRepository friendshipRepository;
     private static User user1;
     private static User user2;
     private static User user3;
+    private final UserRepository userRepository;
+    @Autowired
+    private FriendshipRepository friendshipRepository;
 
     @BeforeAll
     static void beforeAll() {
@@ -88,7 +88,7 @@ class UserRepositoryTest {
         userRepository.createUser(user2);
         userRepository.createUser(user3);
         User updatedUser = User.builder()
-                .id(1)
+                .id(user1.getId())
                 .email("test@example.com")
                 .login("UpdateUser")
                 .name("Update User")
@@ -105,7 +105,7 @@ class UserRepositoryTest {
         userRepository.createUser(user2);
         userRepository.createUser(user3);
 
-        userRepository.deleteUser(1);
+        userRepository.deleteUser(user1.getId());
         assertThrows(NotFoundException.class, () -> userRepository.getUserById(1));
     }
 

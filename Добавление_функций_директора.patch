@@ -1,0 +1,178 @@
+Subject: [PATCH] Добавление функций директора
+---
+Index: src/main/java/ru/yandex/practicum/filmorate/dal/FilmRepository.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/ru/yandex/practicum/filmorate/dal/FilmRepository.java b/src/main/java/ru/yandex/practicum/filmorate/dal/FilmRepository.java
+--- a/src/main/java/ru/yandex/practicum/filmorate/dal/FilmRepository.java	(revision 68000d34f244a0e13cb28972e3e515070ec399fd)
++++ b/src/main/java/ru/yandex/practicum/filmorate/dal/FilmRepository.java	(date 1738315434504)
+@@ -4,6 +4,7 @@
+ import org.springframework.jdbc.core.JdbcTemplate;
+ import org.springframework.jdbc.core.RowMapper;
+ import org.springframework.stereotype.Repository;
++import ru.yandex.practicum.filmorate.model.Director;
+ import ru.yandex.practicum.filmorate.model.Film;
+ import ru.yandex.practicum.filmorate.model.Genre;
+ import ru.yandex.practicum.filmorate.storage.FilmStorage;
+@@ -24,6 +25,9 @@
+     private static final String GET_ALL_GENERES_FILMS = "SELECT * " +
+             "FROM FILMS_GENRE fg, " +
+             "GENRE g WHERE fg.GENRE_ID = g.GENRE_ID";
++    private static final String GET_ALL_DIRECTOR_FILMS = "SELECT * " +
++            "FROM FILM_DIRECTORS fd, " +
++            "DIRECTORS d WHERE fd.DIRECTOR_ID = d.DIRECTOR_ID";
+     private static final String GET_GENRES_BY_FILM = "SELECT * FROM GENRE g, FILMS_GENRE fg " +
+             "WHERE g.GENRE_ID = fg.GENRE_ID AND fg.FILM_ID = ?";
+     private static final String DELETE_FILM_QUERY = "DELETE FROM FILMS WHERE FILM_ID = ?";
+@@ -67,10 +71,14 @@
+     public Collection<Film> getFilms() {
+         Collection<Film> films = findMany(GET_ALL_FILMS_QUERY);
+         Map<Integer, Set<Genre>> genres = getAllGenres();
++        Map<Integer, Set<Director>> directors = getAllDirectors();
+         for (Film film : films) {
+             if (genres.containsKey(film.getId())) {
+                 film.setGenres(genres.get(film.getId()));
+             }
++            if (directors.containsKey(film.getId())) {
++                film.setDirectors(directors.get(film.getId()));
++            }
+         }
+         return films;
+     }
+@@ -120,6 +128,18 @@
+             return genres;
+         });
+     }
++    private Map<Integer, Set<Director>> getAllDirectors() {
++        Map<Integer, Set<Director>> director = new HashMap<>();
++        return jdbc.query(GET_ALL_DIRECTOR_FILMS, (ResultSet rs) -> {
++            while (rs.next()) {
++                Integer filmId = rs.getInt("FILM_ID");
++                Integer directorId = rs.getInt("DIRECTOR_ID");
++                String directorName = rs.getString("DIRECTOR_NAME");
++                director.computeIfAbsent(filmId, k -> new HashSet<>()).add(new Director(directorId, directorName));
++            }
++            return director;
++        });
++    }
+ 
+     private Set<Genre> getGenresByFilm(long filmId) {
+         return jdbc.query(GET_GENRES_BY_FILM, (ResultSet rs) -> {
+Index: src/main/java/ru/yandex/practicum/filmorate/model/Film.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/ru/yandex/practicum/filmorate/model/Film.java b/src/main/java/ru/yandex/practicum/filmorate/model/Film.java
+--- a/src/main/java/ru/yandex/practicum/filmorate/model/Film.java	(revision 68000d34f244a0e13cb28972e3e515070ec399fd)
++++ b/src/main/java/ru/yandex/practicum/filmorate/model/Film.java	(date 1738313447068)
+@@ -34,4 +34,5 @@
+     @JsonIgnore
+     private Set<Integer> likedList = new HashSet<>();
+     private Set<Genre> genres = new HashSet<>();
++    private Set<Director> directors = new HashSet<>();
+ }
+Index: src/main/java/ru/yandex/practicum/filmorate/dal/DirectorRepository.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/ru/yandex/practicum/filmorate/dal/DirectorRepository.java b/src/main/java/ru/yandex/practicum/filmorate/dal/DirectorRepository.java
+new file mode 100644
+--- /dev/null	(date 1738313938521)
++++ b/src/main/java/ru/yandex/practicum/filmorate/dal/DirectorRepository.java	(date 1738313938521)
+@@ -0,0 +1,63 @@
++package ru.yandex.practicum.filmorate.dal;
++
++import org.springframework.jdbc.core.BatchPreparedStatementSetter;
++import org.springframework.jdbc.core.JdbcTemplate;
++import org.springframework.jdbc.core.RowMapper;
++import org.springframework.stereotype.Repository;
++import ru.yandex.practicum.filmorate.model.Director;
++
++import java.sql.PreparedStatement;
++import java.sql.SQLException;
++import java.util.Collection;
++import java.util.List;
++
++@Repository
++public class DirectorRepository extends BaseRepository<Director> {
++    private static final String GET_ALL_DIRECTORS = "SELECT * FROM DIRECTORS";
++    private static final String GET_DIRECTOR_BY_ID = "SELECT * FROM DIRECTORS " +
++            "WHERE DIRECTOR_ID = ?";
++    private static final String ADD_DIRECTOR_QUERY = "INSERT INTO FILM_DIRECTORS (FILM_ID, DIRECTOR_ID) VALUES (?, ?)";
++    private static final String DEL_DIRECTOR_QUERY = "DELETE FROM FILM_DIRECTORS WHERE FILM_ID = ?";
++
++
++    public DirectorRepository(JdbcTemplate jdbc, RowMapper<Director> mapper) {
++        super(jdbc, mapper);
++    }
++
++    public Collection<Director> getAllDirectors() {
++        return findMany(GET_ALL_DIRECTORS);
++    }
++
++    public Director getDirectorById(Integer id) {
++        return findOne(GET_DIRECTOR_BY_ID, id);
++    }
++
++    public void addDirector(Integer filmId, List<Integer> directorId) {
++        batchUpdateBase(ADD_DIRECTOR_QUERY, new BatchPreparedStatementSetter() {
++            @Override
++            public void setValues(PreparedStatement ps, int i) throws SQLException {
++                ps.setLong(1, filmId);
++                ps.setLong(2, directorId.get(i));
++            }
++
++            @Override
++            public int getBatchSize() {
++                return directorId.size();
++            }
++        });
++    }
++
++    public void delDirector(long id) {
++        delete(DEL_DIRECTOR_QUERY, id);
++    }
++
++    public boolean directorExists(Integer directorId) {
++        Integer count = jdbc.queryForObject(
++                "SELECT COUNT(*) FROM DIRECTORS WHERE DIRECTOR_ID = ?",
++                Integer.class,
++                directorId
++        );
++        return count != null && count > 0;
++    }
++
++}
+Index: src/main/java/ru/yandex/practicum/filmorate/mapper/DirectorRowMapper.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/ru/yandex/practicum/filmorate/mapper/DirectorRowMapper.java b/src/main/java/ru/yandex/practicum/filmorate/mapper/DirectorRowMapper.java
+new file mode 100644
+--- /dev/null	(date 1738313447060)
++++ b/src/main/java/ru/yandex/practicum/filmorate/mapper/DirectorRowMapper.java	(date 1738313447060)
+@@ -0,0 +1,19 @@
++package ru.yandex.practicum.filmorate.mapper;
++
++import org.springframework.jdbc.core.RowMapper;
++import org.springframework.stereotype.Component;
++import ru.yandex.practicum.filmorate.model.Director;
++
++import java.sql.ResultSet;
++import java.sql.SQLException;
++
++@Component
++public class DirectorRowMapper implements RowMapper<Director> {
++    @Override
++    public Director mapRow(ResultSet rs, int rowNum) throws SQLException {
++        Director director = new Director();
++        director.setId(rs.getInt("DIRECTOR_ID"));
++        director.setName(rs.getString("DIRECTOR_NAME"));
++        return director;
++    }
++}
