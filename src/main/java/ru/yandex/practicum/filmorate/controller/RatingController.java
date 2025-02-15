@@ -10,6 +10,7 @@ import ru.yandex.practicum.filmorate.service.RatingService;
 
 import java.util.Collection;
 
+@SuppressWarnings("ALL")
 @RestController
 @RequestMapping("/mpa")
 @RequiredArgsConstructor

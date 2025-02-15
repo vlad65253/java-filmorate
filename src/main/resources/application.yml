@@ -1,0 +1,19 @@
+spring:
+  h2:
+    console:
+      enabled: true
+  sql.init:
+    mode: always
+    schema-locations:
+      classpath: schema.sql
+      data-locations:
+        classpath: data.sql
+  datasource:
+    url: jdbc:h2:file:./db/filmorate
+    driverClassName: org.h2.Driver
+    username: sa
+    password: password
+
+logging.level:
+  ru.practicum.store: DEBUG
+

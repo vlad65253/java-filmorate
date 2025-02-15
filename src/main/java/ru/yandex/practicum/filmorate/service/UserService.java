@@ -1,25 +1,25 @@
 package ru.yandex.practicum.filmorate.service;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.filmorate.dal.FriendshipRepository;
+import ru.yandex.practicum.filmorate.dal.status.EventOperation;
+import ru.yandex.practicum.filmorate.dal.status.EventType;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.UserStorage;
+import ru.yandex.practicum.filmorate.storage.*;
 
-import java.util.Collection;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class UserService {
     private final UserStorage userStorage;
-    private final FriendshipRepository friendshipRepository;
-
-    public UserService(@Autowired @Qualifier("userRepository") UserStorage userStorage, @Autowired FriendshipRepository friendshipRepository) {
-        this.userStorage = userStorage;
-        this.friendshipRepository = friendshipRepository;
-    }
+    private final FriendshipStorage friendshipStorage;
+    private final EventStorage eventStorage;
 
     public User createUser(User user) {
         if (user.getName() == null || user.getName().isBlank()) {
@@ -33,42 +33,54 @@ public class UserService {
         return userStorage.updateUser(updateUser);
     }
 
-    public Collection<User> getUsers() {
+    public List<User> getUsers() {
         return userStorage.getUsers();
     }
 
-    public User getUserById(Integer id) {
+    public User getUserById(int id) {
         return userStorage.getUserById(id);
     }
 
-    public void deleteUser(Integer id) {
+    public void deleteUser(int id) {
+        eventStorage.deleteEventsByUserId(id);
         userStorage.deleteUser(id);
     }
 
-    public void addFriend(Integer userId, Integer friendId) {
+    public void addFriend(int userId, int friendId) {
         getUserById(userId);
         getUserById(friendId);
-        friendshipRepository.addFriend(userId, friendId);
-        log.info("User {} added friend {}", userId, friendId);
+        friendshipStorage.addFriend(userId, friendId);
+        log.info("Пользователь {} добавил в друзья {}", userId, friendId);
+        eventStorage.addEvent(userId, EventType.FRIEND, EventOperation.ADD, friendId);
     }
 
-    public void deleteFriend(Integer userId, Integer friendId) {
+    public void deleteFriend(int userId, int friendId) {
         getUserById(userId);
         getUserById(friendId);
-        friendshipRepository.deleteFriend(userId, friendId);
-        log.info("User {} deleted friend {}", userId, friendId);
+        friendshipStorage.deleteFriend(userId, friendId);
+        log.info("Пользователь {} удалил из друзей {}", userId, friendId);
+        eventStorage.addEvent(userId, EventType.FRIEND, EventOperation.REMOVE, friendId);
     }
 
-    public Collection<User> getFriends(Integer userId) {
+    public List<User> getFriends(int userId) {
         getUserById(userId);
-        return friendshipRepository.getAllUserFriends(userId);
+        return friendshipStorage.getAllUserFriends(userId);
     }
 
-    public Collection<User> getCommonFriend(Integer firstId, Integer secondId) {
+    public List<User> getCommonFriend(int firstId, int secondId) {
         getUserById(firstId);
         getUserById(secondId);
-        return friendshipRepository.getCommonFriends(firstId, secondId);
+        return friendshipStorage.getCommonFriends(firstId, secondId);
     }
 
+    public LinkedList<Event> getFeedUserById(int id) {
+        LinkedList<Event> events = eventStorage.getFeedUserById(id).stream()
+                .sorted(Comparator.comparing(Event::getTimestamp))
+                .collect(Collectors.toCollection(LinkedList::new));
+        if (events.isEmpty()) {
+            throw new NotFoundException("Лента событий для пользователя с id " + id + " пуста.");
+        }
+        return events;
+    }
 
 }
