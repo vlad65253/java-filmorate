@@ -36,26 +36,26 @@ WHERE f.film_id = 1;
 ```
 ### Получить список самых популярных фильмов:
 ```sql
-SELECT f.title,
-       COUNT(ul.user_id) as likes
+SELECT f.name,
+       COUNT(ll.user_id) as likes
 FROM films f
-LEFT JOIN users_likes ul on f.film_id = ul.film_id
-GROUP BY f.title
+LEFT JOIN like_list ll on f.film_id = ll.film_id
+GROUP BY f.name
 ORDER BY likes desc
 LIMIT 10;
 ```
 ### Получить жанры фильмов:
 ```sql
-SELECT f.title,
+SELECT f.name,
        g.genre_name
 FROM films f
-JOIN films_genres fg on f.film_id = fg.film_id
+JOIN films_genre fg on f.film_id = fg.film_id
 JOIN genre g ON fg.genre_id = g.genre_id;
 ```
 ### Получить рейтинг фильмов:
 ```sql
-SELECT f.title,
-       r.rating_name
+SELECT f.name,
+       r.rating
 FROM films f
 JOIN rating r on f.rating_id = r.rating_id;
 ```
@@ -73,20 +73,15 @@ WHERE u.user_id = 2;
 ### Получить список друзей пользователя
 ```sql
 SELECT *
-FROM users u
-WHERE u.user_id in (select f.user_id2
-                    from users u2
-                    LEFT JOIN friendship f on u2.user_id = f.user_id1
-                    where u2.user_id = 1);
+FROM USERS
+WHERE USER_ID IN (SELECT FRIEND_ID FROM FRIENDS_LIST WHERE USER_ID = ?);
 ```
 ### Получить список общих друзей
 ```sql
 SELECT *
-FROM users u, friendship f, friendship o
-WHERE u.user_id = f.user_id2
-  AND u.user_id = o.user_id2
-  AND f.user_id1 = ?
-  AND o.user_id1 = ?;
+FROM USERS
+WHERE USER_ID IN (SELECT FRIEND_ID FROM FRIENDS_LIST WHERE USER_ID = ?)
+AND USER_ID IN (SELECT FRIEND_ID FROM FRIENDS_LIST WHERE USER_ID = ?);
 ```
 
 ## API:
